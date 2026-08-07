@@ -164,6 +164,8 @@ export default function Home() {
   const [privacyOpen, setPrivacyOpen] = useState(false);
   const [eraseConfirmed, setEraseConfirmed] = useState(false);
   const resultRef = useRef<HTMLDivElement>(null);
+  const privacyRef = useRef<HTMLElement>(null);
+  const privacyOpenerRef = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
     try {
@@ -187,6 +189,24 @@ export default function Home() {
     if (!storageReady) return;
     window.localStorage.setItem("sovereign-stack-demo-record", JSON.stringify({ recordValues, projectName, recordVisibility, recordOwner, reviewDate, decisionStatus, decisionNote, snapshots, logEntries, productionRecords, sessionRecord, charterRecord }));
   }, [storageReady, recordValues, projectName, recordVisibility, recordOwner, reviewDate, decisionStatus, decisionNote, snapshots, logEntries, productionRecords, sessionRecord, charterRecord]);
+
+  useEffect(() => {
+    if (!privacyOpen) return;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") closePrivacy();
+      if (event.key !== "Tab" || !privacyRef.current) return;
+      const focusable = Array.from(privacyRef.current.querySelectorAll<HTMLElement>('button, a[href], input, textarea, select, [tabindex]:not([tabindex="-1"])')).filter(element => !element.hasAttribute("disabled"));
+      if (!focusable.length) return;
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
+      if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
+    };
+    document.addEventListener("keydown", onKeyDown);
+    return () => { document.body.style.overflow = previousOverflow; document.removeEventListener("keydown", onKeyDown); };
+  }, [privacyOpen]);
 
   const canEdit = activeRole === "Steward" || activeRole === "Technical contributor";
   const canDecide = activeRole === "Authority reviewer";
@@ -225,7 +245,11 @@ export default function Home() {
   }
   function selectView(id: View) {
     setView(id);
-    window.setTimeout(() => document.getElementById(`${id}-content`)?.scrollIntoView({ behavior: "smooth", block: "start" }), 0);
+    window.setTimeout(() => {
+      const destination = document.getElementById(`${id}-content`);
+      destination?.scrollIntoView({ behavior: "smooth", block: "start" });
+      destination?.focus({ preventScroll: true });
+    }, 0);
   }
   function returnToBeginning() { setView("overview"); window.scrollTo({ top: 0, behavior: "smooth" }); }
   function clearGate() { setAnswers([]); setNotes([]); setStep(0); setProjectName(""); setProjectPurpose(""); }
@@ -244,6 +268,16 @@ export default function Home() {
     setSnapshots([]); setLogEntries([]); setProductionRecords(initialProductionRecords); setSessionRecord(initialSessionRecord);
     setCharterRecord(initialCharterRecord); setReviewResponse(""); setReviewConstraint(""); setReviewPeople(""); setReviewBoundary("");
     setAnswers([]); setNotes([]); setStep(0); setEraseConfirmed(true);
+    window.setTimeout(() => setStorageReady(true), 0);
+  }
+  function openPrivacy() {
+    privacyOpenerRef.current = document.activeElement as HTMLElement | null;
+    setEraseConfirmed(false);
+    setPrivacyOpen(true);
+  }
+  function closePrivacy() {
+    setPrivacyOpen(false);
+    window.setTimeout(() => privacyOpenerRef.current?.focus(), 0);
   }
   function carryToRecord() {
     setRecordValues(current => ({ ...current, purpose: projectPurpose || current.purpose, conditions: openConditions.map(condition => `${condition.area}: ${condition.answer} — ${condition.note}`).join("\n") || current.conditions }));
@@ -376,11 +410,11 @@ export default function Home() {
   return <main>
     <header className="topbar">
       <button className="wordmark" onClick={returnToBeginning} aria-label="Return to beginning"><span className="knot" aria-hidden="true">◈</span><span>The Sovereign Stack</span></button>
-      <button className="ownership status-control" onClick={()=>setPrivacyOpen(true)} aria-expanded={privacyOpen}><span />Independent proposal · status &amp; privacy</button>
+      <button className="ownership status-control" onClick={openPrivacy} aria-expanded={privacyOpen} aria-controls="status-privacy-panel"><span />Independent proposal · status &amp; privacy</button>
     </header>
 
-    {privacyOpen && <aside className="privacy-panel" role="dialog" aria-modal="true" aria-labelledby="privacy-title">
-      <button className="privacy-close" onClick={()=>setPrivacyOpen(false)} aria-label="Close status and privacy panel">×</button>
+    {privacyOpen && <aside id="status-privacy-panel" ref={privacyRef} className="privacy-panel" role="dialog" aria-modal="true" aria-labelledby="privacy-title">
+      <button autoFocus className="privacy-close" onClick={closePrivacy} aria-label="Close status and privacy panel">×</button>
       <p className="overline">Status, privacy &amp; local drafts</p><h2 id="privacy-title">Know what this prototype does—and does not do.</h2>
       <div className="privacy-grid"><article><b>Authorship and status</b><p>Independent working concept prepared by RN Collins for discussion with Purple Maiʻa. It is not a Purple Maiʻa product, policy, endorsement, approved protocol, or community-authorized framework.</p></article><article><b>What this browser stores</b><p>Draft system-record, production-readiness, session, and charter entries are saved only in this browser's local storage so they can survive refresh.</p></article><article><b>What is transmitted</b><p>The prototype has no account, database, submission endpoint, or configured analytics. Draft entries are not sent to RN or stored by this application on a server.</p></article><article><b>What must never be entered</b><p>Do not enter protected cultural knowledge, personal data, credentials, confidential organizational information, authority decisions, or anything requiring secure retention.</p></article></div>
       <div className="privacy-actions"><div><b>Version 1.0 · effective 6 August 2026</b><span>Public demonstration · browser-local drafting only</span></div><button onClick={eraseAllDrafts}>Erase all browser drafts</button></div>
@@ -568,6 +602,6 @@ export default function Home() {
       <div className="decision-box"><div><p className="overline">What this room asks</p><h3>Not “Did RN research enough?” but “Is the proposition accurately bounded enough to begin listening?”</h3></div><p>A successful review may produce a correction, a referral to someone with standing, a narrower question, a discovery invitation, or a decision to stop. Each is a useful result.</p></div>
     </section>}
 
-    <footer><div><span className="knot">◈</span><b>The Sovereign Stack</b><small>Version 1.0 · 6 August 2026</small></div><p>Independent working concept prepared by Rayven-Nikkita (RN) Collins for discussion with Purple Maiʻa. Not a Purple Maiʻa product, policy, endorsement, approved protocol, or community-authorized framework. <button onClick={()=>setPrivacyOpen(true)}>Status, privacy &amp; erase drafts</button></p></footer>
+    <footer><div><span className="knot">◈</span><b>The Sovereign Stack</b><small>Version 1.0 · 6 August 2026</small></div><p>Independent working concept prepared by Rayven-Nikkita (RN) Collins for discussion with Purple Maiʻa. Not a Purple Maiʻa product, policy, endorsement, approved protocol, or community-authorized framework. <button onClick={openPrivacy} aria-controls="status-privacy-panel">Status, privacy &amp; erase drafts</button></p></footer>
   </main>;
 }
