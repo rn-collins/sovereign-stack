@@ -2,7 +2,8 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 
-type View = "overview" | "proposal" | "gate" | "record" | "pilot" | "learning" | "readiness" | "session" | "charter" | "review";
+type View = "overview" | "proposal" | "gate" | "record" | "pilot" | "learning" | "readiness" | "session" | "charter" | "review" | "evidence";
+type EvidenceType = "All" | "Verified public context" | "RN interpretation" | "Proposed design" | "Unresolved";
 type RecordKey = "purpose" | "authority" | "knowledge" | "dataFlow" | "dependencies" | "allowed" | "prohibited" | "conditions" | "review" | "challenge" | "incident" | "withdrawal" | "migration" | "retirement";
 type Role = "Steward" | "Authority reviewer" | "Technical contributor" | "Observer";
 type LogEntry = { id: string; kind: "Change" | "Decision" | "Review" | "Incident"; summary: string; actor: string; at: string };
@@ -24,6 +25,22 @@ const nav: { id: View; label: string; eyebrow: string }[] = [
   { id: "session", label: "Co-design session", eyebrow: "08" },
   { id: "charter", label: "Pilot charter", eyebrow: "09" },
   { id: "review", label: "Executive review", eyebrow: "10" },
+  { id: "evidence", label: "Evidence room", eyebrow: "11" },
+];
+
+const evidenceItems: { type: Exclude<EvidenceType, "All">; claim: string; basis: string; boundary: string; source?: { label: string; url: string } }[] = [
+  { type: "Verified public context", claim: "Purple Maiʻa publicly describes a locally controlled AI stack using open models, local compute, coding agents, and edge hardware.", basis: "Purple Maiʻa's published 2026 AI update.", boundary: "The public description does not establish every present component, operating rule, or technical dependency.", source: { label: "Purple Maiʻa · 2026 update on AI", url: "https://www.purplemaia.org/purple-blog/eahou-fest-2026-update-on-ai" } },
+  { type: "Verified public context", claim: "KILO connects environmental observation with kānāwai-guided interpretation and stewardship.", basis: "Purple Maiʻa's public article on Data Guided by Kānāwai.", boundary: "This proposal does not claim access to KILO's internal governance, data, architecture, or participating communities' decisions.", source: { label: "Purple Maiʻa · Data Guided by Kānāwai", url: "https://www.purplemaia.org/purple-blog/data-guided-by-k%C4%81n%C4%81wai" } },
+  { type: "Verified public context", claim: "Purple Maiʻa already operates place-based learning and Indigenous innovation programs.", basis: "Purple Maiʻa's public Kula program materials.", boundary: "A learning translation is relevant only if Purple Maiʻa validates the underlying practice and chooses to teach or publish it.", source: { label: "Purple Maiʻa · Kula", url: "https://www.purplemaia.org/kula" } },
+  { type: "RN interpretation", claim: "The likely open layer is not a sovereignty explainer, but a way to carry authority through operational decisions over time.", basis: "RN's synthesis of Purple Maiʻa's public technical, environmental, and educational work.", boundary: "This is a hypothesis for discovery—not a finding about Purple Maiʻa's actual constraint." },
+  { type: "RN interpretation", claim: "A bounded use such as KILO could make governance requirements concrete enough to test.", basis: "KILO publicly spans purpose, observation, infrastructure, interpretation, and stewardship decisions.", boundary: "KILO is an example candidate only. Purple Maiʻa may identify another use, existing solution, or no need for a pilot." },
+  { type: "Proposed design", claim: "A pre-build gate should allow proceed, pause, redesign, defer, or refuse—and should preserve rationale, dissent, and unresolved conditions.", basis: "RN's governance and legal-technical design proposal.", boundary: "The options, language, standing, and valid decision process must be co-designed and approved before operational use." },
+  { type: "Proposed design", claim: "A living system record could join authority, knowledge boundaries, custody, dependencies, use, review, challenge, repair, migration, and retirement.", basis: "The working prototype on this site.", boundary: "The prototype demonstrates a container. It is not an authoritative record, approved protocol, secure workspace, or Purple Maiʻa policy." },
+  { type: "Proposed design", claim: "Purple Maiʻa should receive editable source and control whether the work remains internal, changes, is taught, is published, or is retired.", basis: "RN's proposed ownership and transfer posture.", boundary: "Actual ownership, confidentiality, licensing, retention, and attribution require an agreed charter or contract." },
+  { type: "Unresolved", claim: "Whether Purple Maiʻa experiences a governance, documentation, learning, policy, or adoption constraint this product should address.", basis: "Not answerable from public materials.", boundary: "Ask Donavan and the people he identifies; do not infer urgency from the existence of the public work." },
+  { type: "Unresolved", claim: "Who has standing to define rules, authorize a pilot, classify knowledge, approve records, contest decisions, or stop work.", basis: "Not established by this proposal.", boundary: "Purple Maiʻa and relevant community or cultural authorities determine standing. RN cannot nominate authority through interface design." },
+  { type: "Unresolved", claim: "What may be discussed, recorded, stored, demonstrated, shared with RN, or made public.", basis: "Requires explicit scope-setting before discovery.", boundary: "Least documentation is the default; protected knowledge need not be exposed to prove governance rigor." },
+  { type: "Unresolved", claim: "Whether a paid discovery phase, bounded pilot, or no further work is the appropriate next step.", basis: "This is the decision the executive review room is designed to support.", boundary: "Interest in a conversation is not approval, consent, a contract, data access, or permission to build." },
 ];
 
 const sessionAgenda = [
@@ -132,6 +149,7 @@ export default function Home() {
   const [reviewConstraint, setReviewConstraint] = useState("");
   const [reviewPeople, setReviewPeople] = useState("");
   const [reviewBoundary, setReviewBoundary] = useState("");
+  const [evidenceFilter, setEvidenceFilter] = useState<EvidenceType>("All");
   const resultRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -314,6 +332,18 @@ export default function Home() {
     const link = document.createElement("a"); link.href = url; link.download = "sovereign-stack-executive-review.json"; link.click(); URL.revokeObjectURL(url);
   }
 
+  function exportEvidenceRegister() {
+    const payload = {
+      document: "Sovereign Stack evidence and assumptions register",
+      preparedAt: new Date().toISOString(),
+      status: "WORKING PROPOSAL — NOT PURPLE MAIʻA POLICY",
+      entries: evidenceItems,
+      reviewRule: "Public facts, RN interpretations, proposed designs, and unresolved questions must remain distinguishable. Purple Maiʻa may correct, reject, restrict, or replace any entry.",
+    };
+    const url = URL.createObjectURL(new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" }));
+    const link = document.createElement("a"); link.href = url; link.download = "sovereign-stack-evidence-register.json"; link.click(); URL.revokeObjectURL(url);
+  }
+
   return <main>
     <header className="topbar">
       <button className="wordmark" onClick={returnToBeginning} aria-label="Return to beginning"><span className="knot" aria-hidden="true">◈</span><span>The Sovereign Stack</span></button>
@@ -477,6 +507,15 @@ export default function Home() {
         <div className="review-close"><div><b>{reviewResponse || "No direction selected"}</b><span>{reviewResponse === "Continue discovery" || reviewResponse === "I see a relevant constraint" ? "Possible next step: define a bounded discovery invitation." : reviewResponse === "Revise the concept" ? "Possible next step: revise only against the direction provided." : reviewResponse ? "No work proceeds from this response." : "Reviewing the proposal does not imply interest or consent."}</span></div><button className="primary" disabled={!reviewResponse} onClick={exportExecutiveBrief}>Download executive review <span>↓</span></button></div>
       </div>
       <div className="decision-box"><div><p className="overline">The one-sentence proposition</p><h3>Purple Maiʻa has built sovereign technical capacity; RN may be useful in helping operationalize the governance and learning layer around it.</h3></div><p>The site is evidence that RN can think and build at this level. Whether the proposed layer is actually useful remains Purple Maiʻa’s question to define.</p></div>
+    </section>}
+
+    {view === "evidence" && <section id="evidence-content" className="content evidence-room" tabIndex={-1}>
+      <div className="section-intro compact"><p className="overline">Evidence room · what is known, inferred, proposed, and open</p><h2>Let every claim carry its own boundary.</h2><p>This register makes the proposal auditable without creating false certainty. It separates Purple Maiʻa's public record from RN's interpretation and design work, then names the questions that only Purple Maiʻa and the relevant authorities can answer.</p></div>
+      <div className="evidence-rule"><div><span>01</span><b>Public fact is not permission.</b><p>A published description can ground context. It cannot authorize access, reuse, representation, or a pilot.</p></div><div><span>02</span><b>A proposal is not a finding.</b><p>RN's system designs are offered for correction and testing; their completeness does not prove organizational need.</p></div><div><span>03</span><b>Unresolved is a valid state.</b><p>The register keeps gaps visible until the right people answer—or decide the question should not be recorded.</p></div></div>
+      <div className="evidence-toolbar"><div role="group" aria-label="Filter evidence register">{(["All", "Verified public context", "RN interpretation", "Proposed design", "Unresolved"] as EvidenceType[]).map(type=><button key={type} className={evidenceFilter===type?"active":""} onClick={()=>setEvidenceFilter(type)}>{type}<span>{type==="All"?evidenceItems.length:evidenceItems.filter(item=>item.type===type).length}</span></button>)}</div><button onClick={exportEvidenceRegister}>Download register ↓</button></div>
+      <div className="evidence-register">{evidenceItems.filter(item=>evidenceFilter==="All"||item.type===evidenceFilter).map((item,index)=><article key={`${item.type}-${item.claim}`}><div className="evidence-kind"><span>{String(index+1).padStart(2,"0")}</span><b>{item.type}</b></div><div className="evidence-claim"><h3>{item.claim}</h3><p><b>Basis</b>{item.basis}</p></div><div className="evidence-boundary"><p><b>Evidence boundary</b>{item.boundary}</p>{item.source&&<a href={item.source.url} target="_blank" rel="noreferrer">{item.source.label} ↗</a>}</div></article>)}</div>
+      <div className="evidence-close"><div><p className="overline">Discovery correction protocol</p><h3>Correct the record before expanding the work.</h3></div><ol><li>Identify the statement, missing context, or category error.</li><li>Mark whether it should be corrected, restricted, removed, or left unresolved.</li><li>Name who may validate the replacement and what evidence may be retained.</li><li>Propagate the correction through the proposal, prototype, charter, and any approved public excerpt.</li></ol></div>
+      <div className="decision-box"><div><p className="overline">What this room asks</p><h3>Not “Did RN research enough?” but “Is the proposition accurately bounded enough to begin listening?”</h3></div><p>A successful review may produce a correction, a referral to someone with standing, a narrower question, a discovery invitation, or a decision to stop. Each is a useful result.</p></div>
     </section>}
 
     <footer><div><span className="knot">◈</span><b>The Sovereign Stack</b></div><p>A working proposal prepared by Rayven-Nikkita (RN) Collins for conversation with Purple Maiʻa. Nothing here represents Purple Maiʻa policy, community consent, an approved protocol, or a factual account beyond the specifically linked public sources.</p></footer>
