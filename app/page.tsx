@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 
 type View = "overview" | "proposal" | "gate" | "record" | "pilot" | "learning";
 
@@ -38,6 +38,7 @@ export default function Home() {
   const [view, setView] = useState<View>("overview");
   const [step, setStep] = useState(0);
   const [answers, setAnswers] = useState<string[]>([]);
+  const resultRef = useRef<HTMLDivElement>(null);
 
   const result = useMemo(() => {
     if (answers.length < questions.length) return null;
@@ -50,13 +51,24 @@ export default function Home() {
 
   function choose(answer: string) {
     const next = [...answers]; next[step] = answer; setAnswers(next.slice(0, step + 1));
-    if (step < questions.length - 1) setStep(step + 1);
+    if (step < questions.length - 1) {
+      setStep(step + 1);
+    } else {
+      window.setTimeout(() => resultRef.current?.scrollIntoView({ behavior: "smooth", block: "center" }), 0);
+    }
   }
-  function selectView(id: View) { setView(id); window.scrollTo({ top: 0, behavior: "smooth" }); }
+  function selectView(id: View) {
+    setView(id);
+    window.setTimeout(() => document.getElementById(`${id}-content`)?.scrollIntoView({ behavior: "smooth", block: "start" }), 0);
+  }
+  function returnToBeginning() {
+    setView("overview");
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
 
   return <main>
     <header className="topbar">
-      <button className="wordmark" onClick={() => selectView("overview")} aria-label="Return to beginning"><span className="knot" aria-hidden="true">◈</span><span>The Sovereign Stack</span></button>
+      <button className="wordmark" onClick={returnToBeginning} aria-label="Return to beginning"><span className="knot" aria-hidden="true">◈</span><span>The Sovereign Stack</span></button>
       <div className="ownership"><span />Working proposal · prepared for Purple Maiʻa</div>
     </header>
 
@@ -74,7 +86,7 @@ export default function Home() {
 
     <nav className="section-nav" aria-label="Proposal sections">{nav.map(item => <button key={item.id} className={view === item.id ? "active" : ""} onClick={() => selectView(item.id)}><span>{item.eyebrow}</span>{item.label}</button>)}</nav>
 
-    {view === "overview" && <section className="content overview">
+    {view === "overview" && <section id="overview-content" className="content overview" tabIndex={-1}>
       <div className="section-intro"><p className="overline">The opportunity</p><h2>The stack already has a technical body. This is a possible way to give its decisions a durable form.</h2><p>Purple Maiʻa’s public work describes local compute, open models, edge hardware, place-based environmental observation, and Indigenous approaches to technology. The open question this proposal explores is whether a reusable governance layer would help carry authority through those systems without reducing sovereignty to a checklist.</p></div>
       <div className="evidence-band"><div><b>Publicly grounded</b><span>Purple Maiʻa’s published work on the Sovereign Stack, KILO, Kānāwai, Kula, Waiw.AI, and Rooted Futures.</span></div><div><b>Proposed by RN</b><span>The decision gate, system record, pilot sequence, governance roles, and learning translations shown here.</span></div><div><b>Not yet known</b><span>Whether this solves a real constraint, who should govern it, whether KILO is the right pilot, and what may be documented.</span></div></div>
       <div className="principles">
@@ -86,7 +98,7 @@ export default function Home() {
       <button className="primary" onClick={() => selectView("proposal")}>What would we build? <span>→</span></button>
     </section>}
 
-    {view === "proposal" && <section className="content proposal">
+    {view === "proposal" && <section id="proposal-content" className="content proposal" tabIndex={-1}>
       <div className="section-intro compact"><p className="overline">The proposed product</p><h2>A governed pathway—not another statement of principles.</h2><p>The working system would connect a proposal to an authority decision, preserve its conditions, make dependencies legible, and keep review, withdrawal, repair, and retirement available over time.</p></div>
       <div className="journey"><p className="overline">One connected record</p><div className="journey-line">{["Purpose","Authority","Boundaries","Custody","Decision","Use & review","Exit & repair"].map((item,i)=><div key={item}><b>{String(i+1).padStart(2,"0")}</b><span>{item}</span></div>)}</div></div>
       <div className="proposal-grid">
@@ -100,18 +112,18 @@ export default function Home() {
       <button className="primary" onClick={() => selectView("gate")}>Experience the gate <span>→</span></button>
     </section>}
 
-    {view === "gate" && <section className="content gate">
+    {view === "gate" && <section id="gate-content" className="content gate" tabIndex={-1}>
       <div className="section-intro compact"><p className="overline">Pre-build protocol · demonstration</p><h2>Should this enter the stack?</h2><p>No answers leave this page or persist after refresh. This simplified gate shows how a project can stop before technology outruns authority. In practice, deliberation, evidence, named roles, conditions, dissent, and review dates would sit behind each response.</p></div>
       <div className="gate-shell"><aside>{questions.map((q,i)=><button key={q.title} className={`${i===step?"current":""} ${answers[i]?"done":""}`} onClick={()=>setStep(i)}><span>{answers[i]?"✓":i+1}</span>{q.title}</button>)}</aside><div className="question-panel">
         <p className="counter">Question {step+1} of {questions.length}</p><h3>{questions[step].title}</h3><p>{questions[step].prompt}</p>
         <div className="options">{questions[step].options.map(option=><button key={option} className={answers[step]===option?"selected":""} onClick={()=>choose(option)}><span/>{option}</button>)}</div>
-        {result && step===questions.length-1 && <div className="result"><p>Demonstration result</p><h4>{result.label}</h4><span>{result.note}</span><button onClick={()=>{setAnswers([]);setStep(0)}}>Clear demonstration</button></div>}
+        {result && step===questions.length-1 && <div ref={resultRef} className="result" role="status" aria-live="polite"><p>Demonstration result</p><h4>{result.label}</h4><span>{result.note}</span><button onClick={()=>{setAnswers([]);setStep(0)}}>Clear demonstration</button></div>}
         <div className="gate-footer"><button disabled={step===0} onClick={()=>setStep(step-1)}>← Previous</button><span>Decision belongs to the designated authority</span><button disabled={step===questions.length-1} onClick={()=>setStep(step+1)}>Next →</button></div>
       </div></div>
       <div className="gate-after"><b>A production version would add:</b><span>Named roles and standing · evidence and rationale · approval conditions · dissent and unresolved questions · risk and benefit owners · review triggers and expiry · access controls · change history · challenge, incident, withdrawal, and repair paths.</span></div>
     </section>}
 
-    {view === "record" && <section className="content record">
+    {view === "record" && <section id="record-content" className="content record" tabIndex={-1}>
       <div className="section-intro compact"><p className="overline">Living system record · proposed container</p><h2>KILO example</h2><p>This example demonstrates what a legible governance record could hold without exposing protected knowledge or security details. It is not a factual description of KILO’s current governance and does not imply Purple Maiʻa has selected KILO as a pilot.</p></div>
       <div className="status-row"><span className="status">Unvalidated demonstration</span><span>Authority: not established · Review date: not established · Record owner: not established</span></div>
       <div className="record-grid">
@@ -126,7 +138,7 @@ export default function Home() {
       <div className="record-note"><b>Evidence rule:</b> each field would be tagged as community-defined rule, approved fact, interpretation, technical observation, proposal, or unresolved question. The record should never manufacture certainty—or reveal protected content—in order to appear complete.</div>
     </section>}
 
-    {view === "pilot" && <section className="content pilot">
+    {view === "pilot" && <section id="pilot-content" className="content pilot" tabIndex={-1}>
       <div className="section-intro compact"><p className="overline">A bounded path to a real answer</p><h2>Begin with discovery. Earn the right to prototype.</h2><p>The work should narrow or stop whenever the relevant authority says it is unnecessary, duplicative, burdensome, unsafe, or outside RN’s role. KILO is an example candidate, not a presumed assignment.</p></div>
       <div className="pilot-list">{pilotPhases.map(([name,copy],i)=><article key={name}><Mark>{String(i+1).padStart(2,"0")}</Mark><h3>{name}</h3><p>{copy}</p><span>{i===0?"First conversation":i===5?"Ownership handoff":"Only if invited forward"}</span></article>)}</div>
       <div className="roles"><article><p className="label">Purple Maiʻa / designated authorities</p><h3>Define, decide, correct, restrict, approve, refuse.</h3><p>Identify standing; set language and boundaries; decide access and publication; validate or reject the resulting practice.</p></article><article><p className="label">RN</p><h3>Listen, translate, map, build, test, document, transfer.</h3><p>Hold process rigor and implementation detail without supplying cultural authority or treating legal analysis as community consent.</p></article><article><p className="label">Technical / program teams</p><h3>Explain, test, maintain, challenge, operate.</h3><p>Map real architecture and constraints; test whether controls work; identify operational burden; own only the responsibilities explicitly assigned.</p></article></div>
@@ -134,7 +146,7 @@ export default function Home() {
       <div className="decision-box"><div><p className="overline">Possible first engagement</p><h3>A short, paid discovery and co-design phase—with a stop/go decision before any pilot.</h3></div><p>Scope, participants, duration, compensation, confidentiality, ownership terms, and deliverables should be defined only after Donavan identifies the actual need and the relevant authorities are invited into scope-setting.</p></div>
     </section>}
 
-    {view === "learning" && <section className="content learning">
+    {view === "learning" && <section id="learning-content" className="content learning" tabIndex={-1}>
       <div className="section-intro compact"><p className="overline">After validation—not before</p><h2>Translate approved practice into learning.</h2><p>The educational and public layer should emerge from something Purple Maiʻa has tested and chosen to share. It should teach judgment and power—not merely vocabulary—and never expose what the governance layer exists to protect.</p></div>
       <div className="learning-grid">
         <article><span>Workshop simulation</span><h3>Who gets to decide?</h3><p>Participants identify missing authority, competing interests, hidden burdens, and whether to proceed, redesign, defer, or refuse.</p><b>Possible audience · youth, educators, community teams</b></article>
