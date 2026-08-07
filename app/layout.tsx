@@ -13,9 +13,33 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://sovereign-stack-psi.vercel.app"),
   title: "The Sovereign Stack | Governance & Learning Layer",
   description:
     "A working concept for carrying community authority through every layer of an AI system—from purpose and data to models, use, review, and refusal.",
+  openGraph: {
+    title: "The Sovereign Stack",
+    description:
+      "A community-owned governance and learning layer for carrying authority through every part of an AI system.",
+    url: "https://sovereign-stack-psi.vercel.app",
+    siteName: "The Sovereign Stack",
+    type: "website",
+    images: [
+      {
+        url: "/opengraph-image",
+        width: 1200,
+        height: 630,
+        alt: "The Sovereign Stack — community authority carried through the AI stack",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "The Sovereign Stack",
+    description:
+      "A community-owned governance and learning layer for carrying authority through every part of an AI system.",
+    images: ["/opengraph-image"],
+  },
   other: {
     "codex-preview": "development",
   },
