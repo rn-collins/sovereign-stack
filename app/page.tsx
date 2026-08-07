@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 
-type View = "overview" | "proposal" | "gate" | "record" | "pilot" | "learning";
+type View = "overview" | "proposal" | "gate" | "record" | "pilot" | "learning" | "readiness";
 type RecordKey = "purpose" | "authority" | "knowledge" | "dataFlow" | "dependencies" | "allowed" | "prohibited" | "conditions" | "review" | "challenge" | "incident" | "withdrawal" | "migration" | "retirement";
 type Role = "Steward" | "Authority reviewer" | "Technical contributor" | "Observer";
 type LogEntry = { id: string; kind: "Change" | "Decision" | "Review" | "Incident"; summary: string; actor: string; at: string };
@@ -15,7 +15,17 @@ const nav: { id: View; label: string; eyebrow: string }[] = [
   { id: "record", label: "System record", eyebrow: "04" },
   { id: "pilot", label: "Pilot path", eyebrow: "05" },
   { id: "learning", label: "Learning layer", eyebrow: "06" },
+  { id: "readiness", label: "Production path", eyebrow: "07" },
 ];
+
+const productionDecisions = [
+  ["Authority & membership", "Who may enter the workspace, who grants and revokes roles, and how authority is verified beyond ordinary account ownership."],
+  ["Hosting & jurisdiction", "Where application, database, backups, logs, and subprocessors may operate—and which classes must remain locally controlled or offline."],
+  ["Knowledge classes", "What may be public, internal, restricted, metadata-only, ephemeral, or never recorded in any digital system."],
+  ["Retention & deletion", "How long each class survives, who can place a hold, what withdrawal can remove, and how deletion is verified across copies and backups."],
+  ["Decision validity", "Which decisions require quorum, conditions, dissent, expiry, re-review, or more than one authority signature."],
+  ["Incidents & repair", "Who is notified, who can contain or stop the system, how community direction governs remedy, and what remains in the audit record."],
+] as const;
 
 const questions = [
   { title: "Name the community purpose", prompt: "What collective need does this project serve—and who defined that need?", options: ["Purpose is community-defined", "Purpose needs confirmation", "Purpose is externally defined"] },
@@ -160,6 +170,32 @@ export default function Home() {
     const url = URL.createObjectURL(new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" }));
     const link = document.createElement("a"); link.href = url; link.download = `${(projectName || "sovereign-stack-review").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "sovereign-stack-review"}.json`; link.click(); URL.revokeObjectURL(url);
   }
+  function exportProductionBrief() {
+    const payload = {
+      document: "Sovereign Stack production decision brief",
+      status: "PROVISIONAL — REQUIRES PURPLE MAIʻA AUTHORITY",
+      generatedAt: new Date().toISOString(),
+      purpose: "Decisions required before protected or authoritative records move beyond the browser demonstration.",
+      requiredDecisions: productionDecisions.map(([decision, question]) => ({ decision, question, status: "Unresolved" })),
+      nonNegotiableControls: [
+        "Authentication never substitutes for community authority.",
+        "Authorization is enforced on the server for every read, write, export, and administrative action.",
+        "Public excerpts are separately approved records, not live views of internal records.",
+        "Sensitive values are excluded from logs, analytics, notifications, URLs, and client storage.",
+        "Authority decisions bind verified identity, authority scope, record version, conditions, dissent, expiry, and timestamp.",
+        "Every record has retention, review, withdrawal, export, migration, and retirement rules before activation.",
+      ],
+      proposedArchitecture: {
+        publicSurface: "Public proposal and separately approved public excerpts",
+        protectedWorkspace: "Authenticated, invitation-only workspace with server-enforced least privilege",
+        authoritativeStore: "Encrypted relational records with append-only event history and version hashes",
+        notifications: "Metadata-minimized review and incident notices; protected content stays inside the workspace",
+        exports: "Authorized, watermarked, logged, and classified; public exports require separate approval",
+      },
+    };
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob); const a = document.createElement("a"); a.href = url; a.download = "sovereign-stack-production-decision-brief.json"; a.click(); URL.revokeObjectURL(url);
+  }
   function exportSystemRecord() {
     const payload = { status: "UNVALIDATED DEMONSTRATION", recordType: "Sovereign Stack living system record", project: projectName || "KILO example / unnamed proposed use", visibility: recordVisibility, steward: recordOwner || "Not established", nextReview: reviewDate || "Not scheduled", authorityDecision: decisionStatus, exportedAt: new Date().toISOString(), fields: Object.fromEntries(recordFields.map(field => [field.label, recordValues[field.key] || "Unresolved — no entry recorded"])), versionHistory: snapshots, activityLog: logEntries, completeness: `${recordFields.filter(field => recordValues[field.key].trim()).length} of ${recordFields.length} fields contain demonstration entries`, caveat: "This record is a browser-local, unvalidated demonstration. Its roles and signatures are not identity-verified. It is not consent, approval, Purple Maiʻa policy, or a factual account of KILO governance." };
     const url = URL.createObjectURL(new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" }));
@@ -262,6 +298,16 @@ export default function Home() {
       </div>
       <div className="sequence"><p className="overline">The sequence matters</p>{["Listen","Govern","Pilot","Validate","Choose what to teach"].map((x,i)=><div key={x}><span>{i+1}</span><b>{x}</b></div>)}</div>
       <div className="sources"><p className="label">Public context informing this proposal</p><a href="https://www.purplemaia.org/purple-blog/eahou-fest-2026-update-on-ai" target="_blank" rel="noreferrer">Purple Maiʻa · 2026 update on AI ↗</a><a href="https://www.purplemaia.org/purple-blog/data-guided-by-k%C4%81n%C4%81wai" target="_blank" rel="noreferrer">Purple Maiʻa · Data Guided by Kānāwai ↗</a><a href="https://www.purplemaia.org/kula" target="_blank" rel="noreferrer">Purple Maiʻa · Kula ↗</a><a href="https://www.gida-global.org/careprinciples" target="_blank" rel="noreferrer">Global Indigenous Data Alliance · CARE Principles ↗</a><a href="https://localcontexts.org/labels/traditional-knowledge-labels/" target="_blank" rel="noreferrer">Local Contexts · TK Labels ↗</a></div>
+    </section>}
+
+    {view === "readiness" && <section id="readiness-content" className="content readiness" tabIndex={-1}>
+      <div className="section-intro compact"><p className="overline">Production path · decisions before infrastructure</p><h2>Secure the authority model before securing the software.</h2><p>The working prototype proves the workflow. A production system should begin only after Purple Maiʻa determines who governs it, what may enter it, where it may operate, and how power can be challenged or withdrawn.</p></div>
+      <div className="readiness-state"><div><span>Current state</span><strong>Safe workflow demonstration</strong><p>Useful for discussion with hypothetical or non-sensitive material. Not an authoritative record system.</p></div><i>→</i><div><span>Decision gate</span><strong>Community-approved production contract</strong><p>Identity, authority, knowledge classes, hosting, retention, incident response, and ownership resolved.</p></div><i>→</i><div><span>Future state</span><strong>Protected operating workspace</strong><p>Server-enforced access, durable records, verified decisions, and separately approved public excerpts.</p></div></div>
+      <div className="architecture-map"><article><span>Public surface</span><h3>Proposal + approved excerpts</h3><p>No internal record is made public by changing a dropdown. Publication creates a separately reviewed, redacted, and approved artifact.</p></article><article><span>Protected workspace</span><h3>Invitation + least privilege</h3><p>Identity establishes who signed in. A Purple Maiʻa-governed membership registry establishes what that person may see or do.</p></article><article><span>Authoritative record</span><h3>Versions + append-only events</h3><p>Every material change preserves who acted, under which role and authority, against which version, and with what review or expiry requirement.</p></article><article><span>Exit and repair</span><h3>Withdrawal + migration + retirement</h3><p>The system is incomplete unless authority can pause use, narrow permissions, export records, verify deletion, migrate dependencies, and end the system.</p></article></div>
+      <div className="production-contract"><div><p className="overline">Six decisions Purple Maiʻa must own</p><h3>The platform cannot answer these on their behalf.</h3><p>Each unresolved item blocks storage of protected or authoritative records. Discovery should produce decisions, named owners, evidence, dissent, and review dates—not simply vendor selections.</p></div><ol>{productionDecisions.map(([decision,question])=><li key={decision}><span>Unresolved</span><div><b>{decision}</b><p>{question}</p></div></li>)}</ol></div>
+      <div className="control-matrix"><p className="overline">Minimum production controls</p><div><article><b>Every request</b><span>Authenticate identity</span><span>Verify membership</span><span>Enforce role + record scope</span><span>Apply classification rule</span></article><article><b>Every decision</b><span>Bind exact record version</span><span>Capture authority scope</span><span>Preserve conditions + dissent</span><span>Set expiry or review trigger</span></article><article><b>Every disclosure</b><span>Create separate excerpt</span><span>Redact by default</span><span>Require publication approval</span><span>Log export without content</span></article><article><b>Every lifecycle</b><span>Schedule review</span><span>Enable challenge + pause</span><span>Test recovery + migration</span><span>Verify retirement obligations</span></article></div></div>
+      <div className="security-boundary production-warning"><b>Hard stop before backend activation</b><span>No real protected knowledge, community records, or authority decisions should enter a hosted database until the six production decisions are approved. Encryption and login screens cannot cure an unresolved authority or knowledge-boundary question.</span></div>
+      <div className="readiness-actions"><button className="primary" onClick={exportProductionBrief}>Download production decision brief <span>↓</span></button><button onClick={()=>selectView("pilot")}>Return to pilot path</button></div>
     </section>}
 
     <footer><div><span className="knot">◈</span><b>The Sovereign Stack</b></div><p>A working proposal prepared by Rayven-Nikkita (RN) Collins for conversation with Purple Maiʻa. Nothing here represents Purple Maiʻa policy, community consent, an approved protocol, or a factual account beyond the specifically linked public sources.</p></footer>
