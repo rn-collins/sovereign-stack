@@ -161,6 +161,8 @@ export default function Home() {
   const [reviewPeople, setReviewPeople] = useState("");
   const [reviewBoundary, setReviewBoundary] = useState("");
   const [evidenceFilter, setEvidenceFilter] = useState<EvidenceType>("All");
+  const [privacyOpen, setPrivacyOpen] = useState(false);
+  const [eraseConfirmed, setEraseConfirmed] = useState(false);
   const resultRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -227,6 +229,22 @@ export default function Home() {
   }
   function returnToBeginning() { setView("overview"); window.scrollTo({ top: 0, behavior: "smooth" }); }
   function clearGate() { setAnswers([]); setNotes([]); setStep(0); setProjectName(""); setProjectPurpose(""); }
+  function downloadText(filename: string, content: string) {
+    const url = URL.createObjectURL(new Blob([content], { type: "text/markdown;charset=utf-8" }));
+    const link = document.createElement("a"); link.href = url; link.download = filename; link.click(); URL.revokeObjectURL(url);
+  }
+  function exportMeetingBrief() {
+    downloadText("sovereign-stack-executive-meeting-brief.md", `# The Sovereign Stack\n\n**Independent working concept prepared by Rayven-Nikkita (RN) Collins for discussion with Purple Maiʻa**  \n**Version 1.0 · 6 August 2026 · Not a Purple Maiʻa product, policy, endorsement, or community-authorized framework**\n\n## The proposition\n\nPurple Maiʻa has already built public-facing technical, environmental, and educational work joining local infrastructure, place-based observation, and Indigenous approaches to technology. RN proposes one question for discovery: would a practical governance layer help authority travel through a system's full lifecycle—purpose, knowledge boundaries, custody, use, dissent, repair, exit, and retirement?\n\n## What is already built\n\nA working demonstration connects a sovereign-use decision gate, living system record, review history, production decisions, co-design process, and bounded pilot charter. Pause, refusal, withdrawal, and non-digitization are valid outcomes. This is a conversation object—not an adopted protocol or secure production system.\n\n## Why RN\n\nRN combines AI product building, governance and legal-technical translation, evidence architecture, learning design, neuroscience, and human-systems analysis. Her role would be implementation architect working under designated authority—not Indigenous authority or the source of Hawaiian values.\n\n## Proposed first engagement\n\nA bounded, compensated discovery engagement: sponsor interview and preparation; one 90-minute governed co-design session; synthesis; and an editable decision brief. It would identify the real constraint, map standing and documentation boundaries, trace one non-sensitive scenario, and end with one legitimate outcome: stop, revise, continue discovery, or invite a separately chartered pilot.\n\n## Decision requested now\n\nIs this a useful problem to define with the right people? This is not a request to approve a framework, select KILO, disclose protected knowledge, authorize production, or consent to publication.\n\n## Non-negotiable boundaries\n\n- Purple Maiʻa and relevant community and cultural authorities define substance and standing.\n- Protected knowledge does not belong in this public browser demonstration.\n- Public excerpts require separate review and approval.\n- Interest, attendance, form completion, or download does not create authority or consent.\n- Revision, referral, deferral, and stopping are successful outcomes.\n\nPrepared for conversation only. Source claims and their limits are documented in the site's Evidence room.\n`);
+  }
+  function eraseAllDrafts() {
+    setStorageReady(false);
+    window.localStorage.removeItem("sovereign-stack-demo-record");
+    setRecordValues(initialSystemRecord); setProjectName(""); setProjectPurpose(""); setRecordVisibility("Internal");
+    setRecordOwner(""); setReviewDate(""); setDecisionStatus("Draft — no authority decision"); setDecisionNote("");
+    setSnapshots([]); setLogEntries([]); setProductionRecords(initialProductionRecords); setSessionRecord(initialSessionRecord);
+    setCharterRecord(initialCharterRecord); setReviewResponse(""); setReviewConstraint(""); setReviewPeople(""); setReviewBoundary("");
+    setAnswers([]); setNotes([]); setStep(0); setEraseConfirmed(true);
+  }
   function carryToRecord() {
     setRecordValues(current => ({ ...current, purpose: projectPurpose || current.purpose, conditions: openConditions.map(condition => `${condition.area}: ${condition.answer} — ${condition.note}`).join("\n") || current.conditions }));
     setRecordField("purpose");
@@ -358,8 +376,16 @@ export default function Home() {
   return <main>
     <header className="topbar">
       <button className="wordmark" onClick={returnToBeginning} aria-label="Return to beginning"><span className="knot" aria-hidden="true">◈</span><span>The Sovereign Stack</span></button>
-      <div className="ownership"><span />Working proposal · prepared for Purple Maiʻa</div>
+      <button className="ownership status-control" onClick={()=>setPrivacyOpen(true)} aria-expanded={privacyOpen}><span />Independent proposal · status &amp; privacy</button>
     </header>
+
+    {privacyOpen && <aside className="privacy-panel" role="dialog" aria-modal="true" aria-labelledby="privacy-title">
+      <button className="privacy-close" onClick={()=>setPrivacyOpen(false)} aria-label="Close status and privacy panel">×</button>
+      <p className="overline">Status, privacy &amp; local drafts</p><h2 id="privacy-title">Know what this prototype does—and does not do.</h2>
+      <div className="privacy-grid"><article><b>Authorship and status</b><p>Independent working concept prepared by RN Collins for discussion with Purple Maiʻa. It is not a Purple Maiʻa product, policy, endorsement, approved protocol, or community-authorized framework.</p></article><article><b>What this browser stores</b><p>Draft system-record, production-readiness, session, and charter entries are saved only in this browser's local storage so they can survive refresh.</p></article><article><b>What is transmitted</b><p>The prototype has no account, database, submission endpoint, or configured analytics. Draft entries are not sent to RN or stored by this application on a server.</p></article><article><b>What must never be entered</b><p>Do not enter protected cultural knowledge, personal data, credentials, confidential organizational information, authority decisions, or anything requiring secure retention.</p></article></div>
+      <div className="privacy-actions"><div><b>Version 1.0 · effective 6 August 2026</b><span>Public demonstration · browser-local drafting only</span></div><button onClick={eraseAllDrafts}>Erase all browser drafts</button></div>
+      {eraseConfirmed&&<p className="erase-confirm" role="status">All Sovereign Stack drafts stored by this site in this browser have been erased.</p>}
+    </aside>}
 
     <section className="hero">
       <div className="hero-copy">
@@ -385,7 +411,7 @@ export default function Home() {
       {meetingStep===3 && <div className="rn-proof"><div><span>Build</span><b>Interactive AI and governance products</b></div><div><span>Translate</span><b>Law, evidence, systems, and implementation</b></div><div><span>Design</span><b>Human-centered learning and decision tools</b></div><div><span>Transfer</span><b>Editable infrastructure the client can own</b></div></div>}
       {meetingStep===4 && <div className="engagement-scope"><article><span>Inputs</span><b>Sponsor context, approved public or non-sensitive materials, participation and recording boundaries</b></article><article><span>Working sequence</span><b>60-minute sponsor interview → preparation → 90-minute governed session → synthesis</b></article><article><span>Outputs</span><b>Constraint definition, authority/standing map, boundary register, scenario trace, and stop/revise/pilot recommendation</b></article><article><span>Not included</span><b>Protected-data access, production system, community-wide claims, public materials, or a presumed pilot</b></article></div>}
       <div className="meeting-controls"><button disabled={meetingStep===0} onClick={()=>setMeetingStep(step=>Math.max(0,step-1))}>← Previous</button><span>{meetingSlides[meetingStep].label}</span>{meetingStep<meetingSlides.length-1?<button className="primary" onClick={()=>setMeetingStep(step=>Math.min(meetingSlides.length-1,step+1))}>Next <span>→</span></button>:<button className="primary" onClick={()=>selectView("review")}>Record a response <span>→</span></button>}</div>
-      <div className="meeting-links"><button onClick={()=>selectView("evidence")}>Inspect the evidence register</button><button onClick={()=>selectView("session")}>Inspect the co-design session</button><button onClick={()=>selectView("charter")}>Inspect the pilot boundary</button></div>
+      <div className="meeting-links"><button onClick={exportMeetingBrief}>Download one-page meeting brief</button><button onClick={()=>window.print()}>Print / save as PDF</button><button onClick={()=>selectView("evidence")}>Inspect the evidence register</button><button onClick={()=>selectView("session")}>Inspect the co-design session</button><button onClick={()=>selectView("charter")}>Inspect the pilot boundary</button></div>
     </section>}
 
     {view === "overview" && <section id="overview-content" className="content overview" tabIndex={-1}>
@@ -542,6 +568,6 @@ export default function Home() {
       <div className="decision-box"><div><p className="overline">What this room asks</p><h3>Not “Did RN research enough?” but “Is the proposition accurately bounded enough to begin listening?”</h3></div><p>A successful review may produce a correction, a referral to someone with standing, a narrower question, a discovery invitation, or a decision to stop. Each is a useful result.</p></div>
     </section>}
 
-    <footer><div><span className="knot">◈</span><b>The Sovereign Stack</b></div><p>A working proposal prepared by Rayven-Nikkita (RN) Collins for conversation with Purple Maiʻa. Nothing here represents Purple Maiʻa policy, community consent, an approved protocol, or a factual account beyond the specifically linked public sources.</p></footer>
+    <footer><div><span className="knot">◈</span><b>The Sovereign Stack</b><small>Version 1.0 · 6 August 2026</small></div><p>Independent working concept prepared by Rayven-Nikkita (RN) Collins for discussion with Purple Maiʻa. Not a Purple Maiʻa product, policy, endorsement, approved protocol, or community-authorized framework. <button onClick={()=>setPrivacyOpen(true)}>Status, privacy &amp; erase drafts</button></p></footer>
   </main>;
 }
