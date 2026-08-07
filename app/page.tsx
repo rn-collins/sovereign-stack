@@ -2,13 +2,14 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 
-type View = "overview" | "proposal" | "gate" | "record" | "pilot" | "learning" | "readiness";
+type View = "overview" | "proposal" | "gate" | "record" | "pilot" | "learning" | "readiness" | "session";
 type RecordKey = "purpose" | "authority" | "knowledge" | "dataFlow" | "dependencies" | "allowed" | "prohibited" | "conditions" | "review" | "challenge" | "incident" | "withdrawal" | "migration" | "retirement";
 type Role = "Steward" | "Authority reviewer" | "Technical contributor" | "Observer";
 type LogEntry = { id: string; kind: "Change" | "Decision" | "Review" | "Incident"; summary: string; actor: string; at: string };
 type Snapshot = { id: string; label: string; at: string; fields: Record<RecordKey, string> };
 type ProductionStatus = "Not examined" | "Discovery underway" | "Draft decision" | "Approved for prototype" | "Blocked";
 type ProductionDecisionRecord = { status: ProductionStatus; owner: string; evidence: string; conditions: string };
+type SessionRecord = { sponsor: string; participants: string; prework: string; boundaries: string; decisions: string; dissent: string; nextStep: string };
 
 const nav: { id: View; label: string; eyebrow: string }[] = [
   { id: "overview", label: "Why this layer", eyebrow: "01" },
@@ -18,7 +19,19 @@ const nav: { id: View; label: string; eyebrow: string }[] = [
   { id: "pilot", label: "Pilot path", eyebrow: "05" },
   { id: "learning", label: "Learning layer", eyebrow: "06" },
   { id: "readiness", label: "Production path", eyebrow: "07" },
+  { id: "session", label: "Co-design session", eyebrow: "08" },
 ];
+
+const sessionAgenda = [
+  ["00–10", "Set standing and boundaries", "Confirm who convened the session, who may speak or decide, what is outside scope, and what must not be recorded."],
+  ["10–25", "Name the real constraint", "Hear the problem in Purple Maiʻa’s language. Test whether a governance tool, another intervention, or no project is appropriate."],
+  ["25–45", "Trace one bounded use", "Map purpose, knowledge class, custody, dependencies, decision points, burden, benefit, challenge, and exit without entering protected content."],
+  ["45–65", "Work the six decisions", "Identify owners, required evidence, disagreements, and blockers. Do not force consensus or convert uncertainty into approval."],
+  ["65–80", "Test a stop scenario", "Practice pause, refusal, withdrawal, incident, and repair. Confirm whether the controls work when interests conflict."],
+  ["80–90", "Close with a real decision", "Choose stop, more discovery, revise, or invite a bounded prototype. Assign only authorized next actions and review dates."],
+] as const;
+
+const initialSessionRecord: SessionRecord = { sponsor: "", participants: "", prework: "", boundaries: "", decisions: "", dissent: "", nextStep: "" };
 
 const productionDecisions = [
   ["Authority & membership", "Who may enter the workspace, who grants and revokes roles, and how authority is verified beyond ordinary account ownership."],
@@ -92,6 +105,7 @@ export default function Home() {
   const [storageReady, setStorageReady] = useState(false);
   const [productionRecords, setProductionRecords] = useState<ProductionDecisionRecord[]>(initialProductionRecords);
   const [productionDecision, setProductionDecision] = useState(0);
+  const [sessionRecord, setSessionRecord] = useState<SessionRecord>(initialSessionRecord);
   const resultRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -105,6 +119,7 @@ export default function Home() {
         setDecisionStatus(parsed.decisionStatus || "Draft — no authority decision"); setDecisionNote(parsed.decisionNote || "");
         setSnapshots(parsed.snapshots || []); setLogEntries(parsed.logEntries || []);
         setProductionRecords(parsed.productionRecords?.length === productionDecisions.length ? parsed.productionRecords : initialProductionRecords);
+        setSessionRecord({ ...initialSessionRecord, ...parsed.sessionRecord });
       }
     } catch { /* A corrupt browser draft is ignored. */ }
     setStorageReady(true);
@@ -112,8 +127,8 @@ export default function Home() {
 
   useEffect(() => {
     if (!storageReady) return;
-    window.localStorage.setItem("sovereign-stack-demo-record", JSON.stringify({ recordValues, projectName, recordVisibility, recordOwner, reviewDate, decisionStatus, decisionNote, snapshots, logEntries, productionRecords }));
-  }, [storageReady, recordValues, projectName, recordVisibility, recordOwner, reviewDate, decisionStatus, decisionNote, snapshots, logEntries, productionRecords]);
+    window.localStorage.setItem("sovereign-stack-demo-record", JSON.stringify({ recordValues, projectName, recordVisibility, recordOwner, reviewDate, decisionStatus, decisionNote, snapshots, logEntries, productionRecords, sessionRecord }));
+  }, [storageReady, recordValues, projectName, recordVisibility, recordOwner, reviewDate, decisionStatus, decisionNote, snapshots, logEntries, productionRecords, sessionRecord]);
 
   const canEdit = activeRole === "Steward" || activeRole === "Technical contributor";
   const canDecide = activeRole === "Authority reviewer";
@@ -208,6 +223,24 @@ export default function Home() {
   }
   function updateProductionRecord(patch: Partial<ProductionDecisionRecord>) {
     setProductionRecords(current => current.map((record, index) => index === productionDecision ? { ...record, ...patch } : record));
+  }
+  function updateSessionRecord(key: keyof SessionRecord, value: string) {
+    setSessionRecord(current => ({ ...current, [key]: value }));
+  }
+  function exportSessionBrief() {
+    const payload = {
+      document: "Sovereign Stack co-design session brief",
+      status: "PROVISIONAL — NON-SENSITIVE DISCOVERY RECORD",
+      generatedAt: new Date().toISOString(),
+      purpose: "Facilitate a Purple Maiʻa-governed discovery session without presuming authority, scope, or a decision to build.",
+      session: sessionRecord,
+      agenda: sessionAgenda.map(([time, stage, purpose]) => ({ time, stage, purpose })),
+      decisionRule: "The close must record one of four outcomes: stop; continue discovery; revise the proposal; or invite a bounded prototype. Silence is not consent and attendance is not authority.",
+      requiredOutputs: ["Standing and participation map", "Recording and knowledge boundaries", "Bounded use-case map", "Decision owners and evidence needs", "Dissent and unresolved questions", "Stop/go determination with authorized next actions"],
+      caveat: "This brief does not establish authority, consent, Purple Maiʻa policy, or permission to record protected knowledge. Purple Maiʻa determines participation, language, documentation, ownership, compensation, confidentiality, and whether the session occurs at all."
+    };
+    const url = URL.createObjectURL(new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" }));
+    const link = document.createElement("a"); link.href = url; link.download = "sovereign-stack-codesign-session-brief.json"; link.click(); URL.revokeObjectURL(url);
   }
   function exportSystemRecord() {
     const payload = { status: "UNVALIDATED DEMONSTRATION", recordType: "Sovereign Stack living system record", project: projectName || "KILO example / unnamed proposed use", visibility: recordVisibility, steward: recordOwner || "Not established", nextReview: reviewDate || "Not scheduled", authorityDecision: decisionStatus, exportedAt: new Date().toISOString(), fields: Object.fromEntries(recordFields.map(field => [field.label, recordValues[field.key] || "Unresolved — no entry recorded"])), versionHistory: snapshots, activityLog: logEntries, completeness: `${recordFields.filter(field => recordValues[field.key].trim()).length} of ${recordFields.length} fields contain demonstration entries`, caveat: "This record is a browser-local, unvalidated demonstration. Its roles and signatures are not identity-verified. It is not consent, approval, Purple Maiʻa policy, or a factual account of KILO governance." };
@@ -325,6 +358,26 @@ export default function Home() {
       <div className="control-matrix"><p className="overline">Minimum production controls</p><div><article><b>Every request</b><span>Authenticate identity</span><span>Verify membership</span><span>Enforce role + record scope</span><span>Apply classification rule</span></article><article><b>Every decision</b><span>Bind exact record version</span><span>Capture authority scope</span><span>Preserve conditions + dissent</span><span>Set expiry or review trigger</span></article><article><b>Every disclosure</b><span>Create separate excerpt</span><span>Redact by default</span><span>Require publication approval</span><span>Log export without content</span></article><article><b>Every lifecycle</b><span>Schedule review</span><span>Enable challenge + pause</span><span>Test recovery + migration</span><span>Verify retirement obligations</span></article></div></div>
       <div className="security-boundary production-warning"><b>Hard stop before backend activation</b><span>{productionRecords.every(record=>record.status==="Approved for prototype") ? "All six areas are marked ready for a technical prototype in this browser demonstration. That still requires verified authority, documented approval, and a separate activation decision before any real backend or protected information is introduced." : "No real protected knowledge, community records, or authority decisions should enter a hosted database until all six production decisions are legitimately resolved. Encryption and login screens cannot cure an unresolved authority or knowledge-boundary question."}</span></div>
       <div className="readiness-actions"><button className="primary" onClick={exportProductionBrief}>Download production decision brief <span>↓</span></button><button onClick={()=>selectView("pilot")}>Return to pilot path</button></div>
+    </section>}
+
+    {view === "session" && <section id="session-content" className="content session" tabIndex={-1}>
+      <div className="section-intro compact"><p className="overline">Co-design session · executable discovery</p><h2>Make the next conversation capable of producing a real decision.</h2><p>This is a facilitation architecture—not a prewritten answer. Purple Maiʻa chooses whether to convene, who has standing, what may be discussed or recorded, and whether the work stops, continues, changes shape, or becomes a bounded prototype.</p></div>
+      <div className="session-guardrails"><article><span>Before invitation</span><h3>Confirm purpose and sponsor.</h3><p>Donavan’s interest can open discovery; it does not identify every relevant authority. Confirm the actual organizational question, who should convene, and whether compensation or confidentiality must precede participation.</p></article><article><span>Before recording</span><h3>Set the knowledge boundary.</h3><p>Decide what may be written, attributed, photographed, exported, or retained. The safest valid outcome may be an oral process with only non-sensitive decisions recorded.</p></article><article><span>Before closing</span><h3>Name who can decide.</h3><p>Distinguish contributors, affected people, technical operators, advisors, sponsors, and authorities. Attendance, expertise, employment, or account access alone does not create standing.</p></article></div>
+      <div className="session-agenda"><div className="session-agenda-head"><p className="overline">A 90-minute first working session</p><h3>Every segment earns the next one.</h3><p>The facilitator may pause or end the process at any point. Timeboxes protect attention; they do not override deliberation or require consensus.</p></div>{sessionAgenda.map(([time,stage,purpose],index)=><article key={stage}><b>{time}</b><span>{String(index+1).padStart(2,"0")}</span><div><h3>{stage}</h3><p>{purpose}</p></div></article>)}</div>
+      <div className="session-workspace">
+        <div className="session-workspace-head"><div><p className="overline">Facilitation brief · browser demonstration</p><h3>Prepare the conditions, not the conclusion.</h3></div><p>Use roles or bodies rather than personal or protected information. These notes stay in this browser and are not a secure organizational record.</p></div>
+        <div className="session-fields">
+          <label>Provisional sponsor or convener<textarea rows={3} value={sessionRecord.sponsor} onChange={event=>updateSessionRecord("sponsor",event.target.value)} placeholder="Who is asking for this session, and what authority do they have to convene it?" /></label>
+          <label>Participation and standing map<textarea rows={3} value={sessionRecord.participants} onChange={event=>updateSessionRecord("participants",event.target.value)} placeholder="Which roles or bodies must define, advise, operate, experience, challenge, or decide? Who is still missing?" /></label>
+          <label>Pre-work and evidence<textarea rows={3} value={sessionRecord.prework} onChange={event=>updateSessionRecord("prework",event.target.value)} placeholder="What existing policy, architecture, practice, failure, agreement, or non-sensitive scenario should participants review?" /></label>
+          <label>Recording and knowledge boundaries<textarea rows={3} value={sessionRecord.boundaries} onChange={event=>updateSessionRecord("boundaries",event.target.value)} placeholder="What may be discussed, recorded, attributed, retained, exported, or never documented?" /></label>
+          <label>Decisions this session may make<textarea rows={3} value={sessionRecord.decisions} onChange={event=>updateSessionRecord("decisions",event.target.value)} placeholder="Name the narrow decisions within scope—and who may make each one." /></label>
+          <label>Dissent, conflicts, and missing voices<textarea rows={3} value={sessionRecord.dissent} onChange={event=>updateSessionRecord("dissent",event.target.value)} placeholder="How will disagreement remain visible? What conflict or absence prevents a valid decision?" /></label>
+          <label className="wide">Authorized close and next step<textarea rows={3} value={sessionRecord.nextStep} onChange={event=>updateSessionRecord("nextStep",event.target.value)} placeholder="Stop, continue discovery, revise, or invite a bounded prototype. Name owner, limit, evidence, review date, and what is expressly not authorized." /></label>
+        </div>
+        <div className="session-output"><div><b>{Object.values(sessionRecord).filter(value=>value.trim()).length}/7</b><span>preparation fields drafted</span></div><p><strong>A complete form is not a valid session.</strong> Validity depends on legitimate participation, boundaries, preserved dissent, and an authorized close—not on filling every box.</p><button className="primary" onClick={exportSessionBrief}>Download facilitation brief <span>↓</span></button></div>
+      </div>
+      <div className="decision-box"><div><p className="overline">What Donavan is asked to decide first</p><h3>Is there a real governance or learning constraint worth exploring—and who should be in the room to define it?</h3></div><p>Not whether to approve this framework. Not whether KILO becomes the pilot. Not whether a backend should be activated. The first decision is simply whether a properly scoped, appropriately governed discovery process would be useful.</p></div>
     </section>}
 
     <footer><div><span className="knot">◈</span><b>The Sovereign Stack</b></div><p>A working proposal prepared by Rayven-Nikkita (RN) Collins for conversation with Purple Maiʻa. Nothing here represents Purple Maiʻa policy, community consent, an approved protocol, or a factual account beyond the specifically linked public sources.</p></footer>
