@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 
-type View = "overview" | "proposal" | "gate" | "record" | "pilot" | "learning" | "readiness" | "session" | "charter" | "review" | "evidence";
+type View = "meeting" | "overview" | "proposal" | "gate" | "record" | "pilot" | "learning" | "readiness" | "session" | "charter" | "review" | "evidence";
 type EvidenceType = "All" | "Verified public context" | "RN interpretation" | "Proposed design" | "Unresolved";
 type RecordKey = "purpose" | "authority" | "knowledge" | "dataFlow" | "dependencies" | "allowed" | "prohibited" | "conditions" | "review" | "challenge" | "incident" | "withdrawal" | "migration" | "retirement";
 type Role = "Steward" | "Authority reviewer" | "Technical contributor" | "Observer";
@@ -15,6 +15,7 @@ type CharterRecord = { useCase: string; sponsor: string; authority: string; scop
 type ReviewResponse = "I see a relevant constraint" | "Continue discovery" | "Revise the concept" | "Not useful now" | "Not mine to decide";
 
 const nav: { id: View; label: string; eyebrow: string }[] = [
+  { id: "meeting", label: "Meeting mode", eyebrow: "00" },
   { id: "overview", label: "Why this layer", eyebrow: "01" },
   { id: "proposal", label: "The proposal", eyebrow: "02" },
   { id: "gate", label: "Decision gate", eyebrow: "03" },
@@ -27,6 +28,15 @@ const nav: { id: View; label: string; eyebrow: string }[] = [
   { id: "review", label: "Executive review", eyebrow: "10" },
   { id: "evidence", label: "Evidence room", eyebrow: "11" },
 ];
+
+const meetingSlides = [
+  { label: "Observed context", title: "Purple Maiʻa has already built the technical embodiment.", body: "Its public work joins local compute, open models, edge hardware, place-based observation, and Indigenous approaches to technology. RN is not proposing to explain sovereignty back to Purple Maiʻa.", proof: "Public context only—not permission, internal knowledge, or a finding about current operations." },
+  { label: "Possible constraint", title: "The open question is whether authority remains operational as systems change.", body: "A technical stack can be locally controlled while decisions about purpose, knowledge, custody, use, dissent, repair, and exit remain difficult to carry through the full lifecycle.", proof: "This is RN’s discovery hypothesis. Purple Maiʻa may correct it, narrow it, identify existing work, or reject it." },
+  { label: "Working mechanism", title: "The prototype makes that hypothesis testable.", body: "A sovereign-use gate connects to a living system record, review history, production decisions, co-design process, and bounded pilot charter. Pause, refusal, withdrawal, and non-digitization are designed as valid outcomes.", proof: "The mechanism is built; its substance, language, standing, and rules are not adopted or community-authorized." },
+  { label: "Why RN", title: "RN can translate governance into working legal-technical infrastructure.", body: "RN combines AI product building, evidence architecture, governance and legal research, learning design, neuroscience, and human-systems analysis—and can transfer editable tools instead of leaving Purple Maiʻa with a static report.", proof: "Role boundary: implementation architect working under designated authority—not Indigenous authority or the source of Hawaiian values." },
+  { label: "Bounded engagement", title: "Begin with paid discovery, not a presumed pilot.", body: "A short engagement would confirm the real constraint, map standing and documentation boundaries, trace one non-sensitive scenario, and determine whether to stop, revise, continue discovery, or invite a separately chartered pilot.", proof: "Proposed container: sponsor interview, preparation, one 90-minute co-design session, synthesis, and editable decision brief. Timing, participants, confidentiality, and fee are agreed only after fit." },
+  { label: "Decision", title: "Is this a useful problem to define with the right people?", body: "Donavan is not being asked to approve a framework, choose KILO, disclose protected knowledge, or authorize production. The immediate question is whether governed discovery would create enough value to justify scoping it.", proof: "A valid answer may be yes, revise, refer, not now, or stop." },
+] as const;
 
 const evidenceItems: { type: Exclude<EvidenceType, "All">; claim: string; basis: string; boundary: string; source?: { label: string; url: string } }[] = [
   { type: "Verified public context", claim: "Purple Maiʻa publicly describes a locally controlled AI stack using open models, local compute, coding agents, and edge hardware.", basis: "Purple Maiʻa's published 2026 AI update.", boundary: "The public description does not establish every present component, operating rule, or technical dependency.", source: { label: "Purple Maiʻa · 2026 update on AI", url: "https://www.purplemaia.org/purple-blog/eahou-fest-2026-update-on-ai" } },
@@ -124,6 +134,7 @@ function Mark({ children }: { children: React.ReactNode }) { return <span classN
 
 export default function Home() {
   const [view, setView] = useState<View>("overview");
+  const [meetingStep, setMeetingStep] = useState(0);
   const [step, setStep] = useState(0);
   const [answers, setAnswers] = useState<string[]>([]);
   const [notes, setNotes] = useState<string[]>([]);
@@ -355,7 +366,7 @@ export default function Home() {
         <p className="overline">A proposed governance &amp; learning layer</p>
         <h1>Infrastructure can be local.<br/><em>Authority must travel through it.</em></h1>
         <p className="lede">A Purple Maiʻa-owned way to carry community purpose, authority, knowledge boundaries, accountability, and the right to refuse through the life of an AI system.</p>
-        <div className="hero-actions"><button className="primary light" onClick={() => selectView("proposal")}>See the proposal <span>→</span></button><button className="text-link" onClick={() => selectView("review")}>Executive review</button></div>
+        <div className="hero-actions"><button className="primary light" onClick={() => selectView("meeting")}>Start 7-minute meeting <span>→</span></button><button className="text-link" onClick={() => selectView("review")}>Executive review</button></div>
       </div>
       <div className="hero-orbit" aria-label="Illustration of governance surrounding a technical system"><div className="orbit orbit-a"><span>Purpose</span><span>Authority</span></div><div className="orbit orbit-b"><span>Knowledge</span><span>Control</span></div><div className="orbit-core">Use case<br/><small>under review</small></div></div>
     </section>
@@ -363,6 +374,19 @@ export default function Home() {
     <div className="scope-strip"><b>This is a proposal, not Purple Maiʻa policy.</b><span>Purple Maiʻa and the relevant community and cultural authorities would define the substance. This prototype demonstrates a possible structure for their review.</span></div>
 
     <nav className="section-nav" aria-label="Proposal sections">{nav.map(item => <button key={item.id} className={view === item.id ? "active" : ""} onClick={() => selectView(item.id)}><span>{item.eyebrow}</span>{item.label}</button>)}</nav>
+
+    {view === "meeting" && <section id="meeting-content" className="content meeting-mode" tabIndex={-1}>
+      <div className="meeting-top"><div><p className="overline">Meeting mode · six decisions · approximately seven minutes</p><h2>A short path through the full proposition.</h2></div><p>Use this in conversation. The complete product remains available in the numbered rooms as the evidence and working layer beneath it.</p></div>
+      <div className="meeting-progress" aria-label={`Meeting step ${meetingStep + 1} of ${meetingSlides.length}`}>{meetingSlides.map((slide,index)=><button key={slide.label} className={index===meetingStep?"active":index<meetingStep?"complete":""} onClick={()=>setMeetingStep(index)} aria-label={`Go to ${slide.label}`}><span>{String(index+1).padStart(2,"0")}</span><b>{slide.label}</b></button>)}</div>
+      <article className="meeting-card" aria-live="polite">
+        <div className="meeting-number">{String(meetingStep+1).padStart(2,"0")}<small>/ {String(meetingSlides.length).padStart(2,"0")}</small></div>
+        <div><p className="overline">{meetingSlides[meetingStep].label}</p><h3>{meetingSlides[meetingStep].title}</h3><p className="meeting-body">{meetingSlides[meetingStep].body}</p><div className="meeting-proof"><b>Keep the boundary visible</b><span>{meetingSlides[meetingStep].proof}</span></div></div>
+      </article>
+      {meetingStep===3 && <div className="rn-proof"><div><span>Build</span><b>Interactive AI and governance products</b></div><div><span>Translate</span><b>Law, evidence, systems, and implementation</b></div><div><span>Design</span><b>Human-centered learning and decision tools</b></div><div><span>Transfer</span><b>Editable infrastructure the client can own</b></div></div>}
+      {meetingStep===4 && <div className="engagement-scope"><article><span>Inputs</span><b>Sponsor context, approved public or non-sensitive materials, participation and recording boundaries</b></article><article><span>Working sequence</span><b>60-minute sponsor interview → preparation → 90-minute governed session → synthesis</b></article><article><span>Outputs</span><b>Constraint definition, authority/standing map, boundary register, scenario trace, and stop/revise/pilot recommendation</b></article><article><span>Not included</span><b>Protected-data access, production system, community-wide claims, public materials, or a presumed pilot</b></article></div>}
+      <div className="meeting-controls"><button disabled={meetingStep===0} onClick={()=>setMeetingStep(step=>Math.max(0,step-1))}>← Previous</button><span>{meetingSlides[meetingStep].label}</span>{meetingStep<meetingSlides.length-1?<button className="primary" onClick={()=>setMeetingStep(step=>Math.min(meetingSlides.length-1,step+1))}>Next <span>→</span></button>:<button className="primary" onClick={()=>selectView("review")}>Record a response <span>→</span></button>}</div>
+      <div className="meeting-links"><button onClick={()=>selectView("evidence")}>Inspect the evidence register</button><button onClick={()=>selectView("session")}>Inspect the co-design session</button><button onClick={()=>selectView("charter")}>Inspect the pilot boundary</button></div>
+    </section>}
 
     {view === "overview" && <section id="overview-content" className="content overview" tabIndex={-1}>
       <div className="section-intro"><p className="overline">The opportunity</p><h2>The stack already has a technical body. This is a possible way to give its decisions a durable form.</h2><p>Purple Maiʻa’s public work describes local compute, open models, edge hardware, place-based environmental observation, and Indigenous approaches to technology. The open question this proposal explores is whether a reusable governance layer would help carry authority through those systems without reducing sovereignty to a checklist.</p></div>
