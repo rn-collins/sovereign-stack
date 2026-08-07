@@ -7,6 +7,8 @@ type RecordKey = "purpose" | "authority" | "knowledge" | "dataFlow" | "dependenc
 type Role = "Steward" | "Authority reviewer" | "Technical contributor" | "Observer";
 type LogEntry = { id: string; kind: "Change" | "Decision" | "Review" | "Incident"; summary: string; actor: string; at: string };
 type Snapshot = { id: string; label: string; at: string; fields: Record<RecordKey, string> };
+type ProductionStatus = "Not examined" | "Discovery underway" | "Draft decision" | "Approved for prototype" | "Blocked";
+type ProductionDecisionRecord = { status: ProductionStatus; owner: string; evidence: string; conditions: string };
 
 const nav: { id: View; label: string; eyebrow: string }[] = [
   { id: "overview", label: "Why this layer", eyebrow: "01" },
@@ -26,6 +28,8 @@ const productionDecisions = [
   ["Decision validity", "Which decisions require quorum, conditions, dissent, expiry, re-review, or more than one authority signature."],
   ["Incidents & repair", "Who is notified, who can contain or stop the system, how community direction governs remedy, and what remains in the audit record."],
 ] as const;
+
+const initialProductionRecords: ProductionDecisionRecord[] = productionDecisions.map(() => ({ status: "Not examined", owner: "", evidence: "", conditions: "" }));
 
 const questions = [
   { title: "Name the community purpose", prompt: "What collective need does this project serve—and who defined that need?", options: ["Purpose is community-defined", "Purpose needs confirmation", "Purpose is externally defined"] },
@@ -86,6 +90,8 @@ export default function Home() {
   const [logEntries, setLogEntries] = useState<LogEntry[]>([]);
   const [logDraft, setLogDraft] = useState("");
   const [storageReady, setStorageReady] = useState(false);
+  const [productionRecords, setProductionRecords] = useState<ProductionDecisionRecord[]>(initialProductionRecords);
+  const [productionDecision, setProductionDecision] = useState(0);
   const resultRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -98,6 +104,7 @@ export default function Home() {
         setRecordOwner(parsed.recordOwner || ""); setReviewDate(parsed.reviewDate || "");
         setDecisionStatus(parsed.decisionStatus || "Draft — no authority decision"); setDecisionNote(parsed.decisionNote || "");
         setSnapshots(parsed.snapshots || []); setLogEntries(parsed.logEntries || []);
+        setProductionRecords(parsed.productionRecords?.length === productionDecisions.length ? parsed.productionRecords : initialProductionRecords);
       }
     } catch { /* A corrupt browser draft is ignored. */ }
     setStorageReady(true);
@@ -105,8 +112,8 @@ export default function Home() {
 
   useEffect(() => {
     if (!storageReady) return;
-    window.localStorage.setItem("sovereign-stack-demo-record", JSON.stringify({ recordValues, projectName, recordVisibility, recordOwner, reviewDate, decisionStatus, decisionNote, snapshots, logEntries }));
-  }, [storageReady, recordValues, projectName, recordVisibility, recordOwner, reviewDate, decisionStatus, decisionNote, snapshots, logEntries]);
+    window.localStorage.setItem("sovereign-stack-demo-record", JSON.stringify({ recordValues, projectName, recordVisibility, recordOwner, reviewDate, decisionStatus, decisionNote, snapshots, logEntries, productionRecords }));
+  }, [storageReady, recordValues, projectName, recordVisibility, recordOwner, reviewDate, decisionStatus, decisionNote, snapshots, logEntries, productionRecords]);
 
   const canEdit = activeRole === "Steward" || activeRole === "Technical contributor";
   const canDecide = activeRole === "Authority reviewer";
@@ -171,12 +178,15 @@ export default function Home() {
     const link = document.createElement("a"); link.href = url; link.download = `${(projectName || "sovereign-stack-review").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "sovereign-stack-review"}.json`; link.click(); URL.revokeObjectURL(url);
   }
   function exportProductionBrief() {
+    const approved = productionRecords.filter(record => record.status === "Approved for prototype").length;
+    const blocked = productionRecords.filter(record => record.status === "Blocked").length;
     const payload = {
       document: "Sovereign Stack production decision brief",
       status: "PROVISIONAL — REQUIRES PURPLE MAIʻA AUTHORITY",
       generatedAt: new Date().toISOString(),
       purpose: "Decisions required before protected or authoritative records move beyond the browser demonstration.",
-      requiredDecisions: productionDecisions.map(([decision, question]) => ({ decision, question, status: "Unresolved" })),
+      readiness: { approved, total: productionDecisions.length, blocked, backendActivationPermitted: approved === productionDecisions.length && blocked === 0, determination: approved === productionDecisions.length && blocked === 0 ? "Eligible for a separately authorized technical prototype; not authorization to store protected knowledge." : "Backend activation remains blocked." },
+      requiredDecisions: productionDecisions.map(([decision, question], index) => ({ decision, question, ...productionRecords[index] })),
       nonNegotiableControls: [
         "Authentication never substitutes for community authority.",
         "Authorization is enforced on the server for every read, write, export, and administrative action.",
@@ -195,6 +205,9 @@ export default function Home() {
     };
     const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
     const url = URL.createObjectURL(blob); const a = document.createElement("a"); a.href = url; a.download = "sovereign-stack-production-decision-brief.json"; a.click(); URL.revokeObjectURL(url);
+  }
+  function updateProductionRecord(patch: Partial<ProductionDecisionRecord>) {
+    setProductionRecords(current => current.map((record, index) => index === productionDecision ? { ...record, ...patch } : record));
   }
   function exportSystemRecord() {
     const payload = { status: "UNVALIDATED DEMONSTRATION", recordType: "Sovereign Stack living system record", project: projectName || "KILO example / unnamed proposed use", visibility: recordVisibility, steward: recordOwner || "Not established", nextReview: reviewDate || "Not scheduled", authorityDecision: decisionStatus, exportedAt: new Date().toISOString(), fields: Object.fromEntries(recordFields.map(field => [field.label, recordValues[field.key] || "Unresolved — no entry recorded"])), versionHistory: snapshots, activityLog: logEntries, completeness: `${recordFields.filter(field => recordValues[field.key].trim()).length} of ${recordFields.length} fields contain demonstration entries`, caveat: "This record is a browser-local, unvalidated demonstration. Its roles and signatures are not identity-verified. It is not consent, approval, Purple Maiʻa policy, or a factual account of KILO governance." };
@@ -262,7 +275,7 @@ export default function Home() {
     </section>}
 
     {view === "record" && <section id="record-content" className="content record" tabIndex={-1}>
-      <div className="section-intro compact"><p className="overline">Living system record · working demonstration</p><h2>Carry a decision through the system’s life.</h2><p>This editable record demonstrates the container—not KILO’s actual governance. Enter only hypothetical or non-sensitive material. Nothing persists after refresh or leaves this page unless you download it.</p></div>
+      <div className="section-intro compact"><p className="overline">Living system record · working demonstration</p><h2>Carry a decision through the system’s life.</h2><p>This editable record demonstrates the container—not KILO’s actual governance. Enter only hypothetical or non-sensitive material. The working draft persists only in this browser until you erase it; nothing is sent to a server.</p></div>
       <div className="status-row"><span className="status">Unvalidated demonstration</span><span>{recordFields.filter(field=>recordValues[field.key].trim()).length} of {recordFields.length} fields drafted · Authority, record owner, and review date not established</span></div>
       <div className="record-toolbar"><div><label>Record name<input value={projectName} onChange={event=>setProjectName(event.target.value)} placeholder="KILO example or another proposed use" /></label><label>Demonstration visibility<select value={recordVisibility} onChange={event=>setRecordVisibility(event.target.value as typeof recordVisibility)}><option>Internal</option><option>Restricted</option><option>Public excerpt</option></select></label></div><p><b>Classification is a governance decision, not a publishing toggle.</b> A production system would enforce access, approval, redaction, and separate public/internal records. This selector only demonstrates the required distinction.</p></div>
       <div className="record-workspace"><aside aria-label="System record fields">{[...new Set(recordFields.map(field=>field.group))].map(group=><div key={group}><p>{group}</p>{recordFields.filter(field=>field.group===group).map(field=><button key={field.key} className={recordField===field.key?"active":""} onClick={()=>setRecordField(field.key)}><span>{recordValues[field.key].trim()?"✓":"○"}</span>{field.label}</button>)}</div>)}</aside><div className="record-editor">{recordFields.filter(field=>field.key===recordField).map(field=><div key={field.key}><p className="overline">{field.group} · editable field</p><h3>{field.label}</h3><p>{field.prompt}</p><label><span>Demonstration entry</span><textarea rows={11} value={recordValues[field.key]} onChange={event=>setRecordValues(current=>({...current,[field.key]:event.target.value}))} placeholder={field.placeholder}/></label><div className="record-guidance"><b>Evidence status must remain visible</b><span>In production, each entry would identify whether it is a community-defined rule, approved fact, technical observation, interpretation, proposal, dissent, or unresolved question—plus its source, authority, date, and review trigger.</span></div><div className="record-pagination"><button disabled={recordFields.findIndex(item=>item.key===recordField)===0} onClick={()=>setRecordField(recordFields[recordFields.findIndex(item=>item.key===recordField)-1].key)}>← Previous field</button><span>{recordFields.findIndex(item=>item.key===recordField)+1} of {recordFields.length}</span><button disabled={recordFields.findIndex(item=>item.key===recordField)===recordFields.length-1} onClick={()=>setRecordField(recordFields[recordFields.findIndex(item=>item.key===recordField)+1].key)}>Next field →</button></div></div>)}</div></div>
@@ -305,8 +318,12 @@ export default function Home() {
       <div className="readiness-state"><div><span>Current state</span><strong>Safe workflow demonstration</strong><p>Useful for discussion with hypothetical or non-sensitive material. Not an authoritative record system.</p></div><i>→</i><div><span>Decision gate</span><strong>Community-approved production contract</strong><p>Identity, authority, knowledge classes, hosting, retention, incident response, and ownership resolved.</p></div><i>→</i><div><span>Future state</span><strong>Protected operating workspace</strong><p>Server-enforced access, durable records, verified decisions, and separately approved public excerpts.</p></div></div>
       <div className="architecture-map"><article><span>Public surface</span><h3>Proposal + approved excerpts</h3><p>No internal record is made public by changing a dropdown. Publication creates a separately reviewed, redacted, and approved artifact.</p></article><article><span>Protected workspace</span><h3>Invitation + least privilege</h3><p>Identity establishes who signed in. A Purple Maiʻa-governed membership registry establishes what that person may see or do.</p></article><article><span>Authoritative record</span><h3>Versions + append-only events</h3><p>Every material change preserves who acted, under which role and authority, against which version, and with what review or expiry requirement.</p></article><article><span>Exit and repair</span><h3>Withdrawal + migration + retirement</h3><p>The system is incomplete unless authority can pause use, narrow permissions, export records, verify deletion, migrate dependencies, and end the system.</p></article></div>
       <div className="production-contract"><div><p className="overline">Six decisions Purple Maiʻa must own</p><h3>The platform cannot answer these on their behalf.</h3><p>Each unresolved item blocks storage of protected or authoritative records. Discovery should produce decisions, named owners, evidence, dissent, and review dates—not simply vendor selections.</p></div><ol>{productionDecisions.map(([decision,question])=><li key={decision}><span>Unresolved</span><div><b>{decision}</b><p>{question}</p></div></li>)}</ol></div>
+      <div className="activation-workspace">
+        <div className="activation-head"><div><p className="overline">Discovery &amp; activation workspace · browser demonstration</p><h3>Turn unresolved choices into governed decisions.</h3><p>Use hypothetical or non-sensitive notes only. A status describes discovery progress; it does not prove authority or authorize infrastructure.</p></div><div className="readiness-score"><strong>{productionRecords.filter(record=>record.status==="Approved for prototype").length}/{productionDecisions.length}</strong><span>approved for prototype</span><small>{productionRecords.some(record=>record.status==="Blocked")?"A recorded block is active":"Backend remains off until all six qualify"}</small></div></div>
+        <div className="activation-body"><aside aria-label="Production decisions">{productionDecisions.map(([decision],index)=><button key={decision} className={productionDecision===index?"active":""} onClick={()=>setProductionDecision(index)}><span>{productionRecords[index].status==="Approved for prototype"?"✓":productionRecords[index].status==="Blocked"?"!":"○"}</span><div><b>{decision}</b><small>{productionRecords[index].status}</small></div></button>)}</aside><div className="activation-editor"><p className="overline">Decision {productionDecision+1} of {productionDecisions.length}</p><h3>{productionDecisions[productionDecision][0]}</h3><p>{productionDecisions[productionDecision][1]}</p><div className="activation-fields"><label>Status<select value={productionRecords[productionDecision].status} onChange={event=>updateProductionRecord({status:event.target.value as ProductionStatus})}><option>Not examined</option><option>Discovery underway</option><option>Draft decision</option><option>Approved for prototype</option><option>Blocked</option></select></label><label>Accountable owner or authority body<input value={productionRecords[productionDecision].owner} onChange={event=>updateProductionRecord({owner:event.target.value})} placeholder="Role or body; avoid personal information" /></label><label>Evidence required to resolve this decision<textarea rows={4} value={productionRecords[productionDecision].evidence} onChange={event=>updateProductionRecord({evidence:event.target.value})} placeholder="What must be reviewed, tested, documented, or decided—and by whom?" /></label><label>Conditions, dissent, or remaining questions<textarea rows={4} value={productionRecords[productionDecision].conditions} onChange={event=>updateProductionRecord({conditions:event.target.value})} placeholder="Preserve disagreement and unknowns; do not enter protected content." /></label></div><div className="activation-guidance"><b>“Approved for prototype” is deliberately narrow.</b><span>It means the decision has enough legitimate direction to design or test the corresponding control. It does not authorize protected data, production launch, publication, or use by another project or community.</span></div><div className="record-pagination"><button disabled={productionDecision===0} onClick={()=>setProductionDecision(productionDecision-1)}>← Previous decision</button><span>{productionDecision+1} of {productionDecisions.length}</span><button disabled={productionDecision===productionDecisions.length-1} onClick={()=>setProductionDecision(productionDecision+1)}>Next decision →</button></div></div></div>
+      </div>
       <div className="control-matrix"><p className="overline">Minimum production controls</p><div><article><b>Every request</b><span>Authenticate identity</span><span>Verify membership</span><span>Enforce role + record scope</span><span>Apply classification rule</span></article><article><b>Every decision</b><span>Bind exact record version</span><span>Capture authority scope</span><span>Preserve conditions + dissent</span><span>Set expiry or review trigger</span></article><article><b>Every disclosure</b><span>Create separate excerpt</span><span>Redact by default</span><span>Require publication approval</span><span>Log export without content</span></article><article><b>Every lifecycle</b><span>Schedule review</span><span>Enable challenge + pause</span><span>Test recovery + migration</span><span>Verify retirement obligations</span></article></div></div>
-      <div className="security-boundary production-warning"><b>Hard stop before backend activation</b><span>No real protected knowledge, community records, or authority decisions should enter a hosted database until the six production decisions are approved. Encryption and login screens cannot cure an unresolved authority or knowledge-boundary question.</span></div>
+      <div className="security-boundary production-warning"><b>Hard stop before backend activation</b><span>{productionRecords.every(record=>record.status==="Approved for prototype") ? "All six areas are marked ready for a technical prototype in this browser demonstration. That still requires verified authority, documented approval, and a separate activation decision before any real backend or protected information is introduced." : "No real protected knowledge, community records, or authority decisions should enter a hosted database until all six production decisions are legitimately resolved. Encryption and login screens cannot cure an unresolved authority or knowledge-boundary question."}</span></div>
       <div className="readiness-actions"><button className="primary" onClick={exportProductionBrief}>Download production decision brief <span>↓</span></button><button onClick={()=>selectView("pilot")}>Return to pilot path</button></div>
     </section>}
 
