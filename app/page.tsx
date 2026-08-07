@@ -3,6 +3,7 @@
 import { useMemo, useRef, useState } from "react";
 
 type View = "overview" | "proposal" | "gate" | "record" | "pilot" | "learning";
+type RecordKey = "purpose" | "authority" | "knowledge" | "dataFlow" | "dependencies" | "allowed" | "prohibited" | "conditions" | "review" | "challenge" | "incident" | "withdrawal" | "migration" | "retirement";
 
 const nav: { id: View; label: string; eyebrow: string }[] = [
   { id: "overview", label: "Why this layer", eyebrow: "01" },
@@ -32,6 +33,25 @@ const pilotPhases = [
   ["Transfer", "Purple Maiʻa receives the editable system, documentation, governance record, and the choice to keep it internal, teach from it, publish it, or retire it."],
 ];
 
+const recordFields: { key: RecordKey; group: string; label: string; prompt: string; placeholder: string }[] = [
+  { key: "purpose", group: "Mandate", label: "Community purpose", prompt: "What collective need is this system permitted to serve?", placeholder: "Provisional purpose; identify who defined it and what still requires confirmation." },
+  { key: "authority", group: "Mandate", label: "Authority & standing", prompt: "Who may decide, participate, contest, and stop this use?", placeholder: "Name roles or bodies—not protected personal information—and the scope of each authority." },
+  { key: "knowledge", group: "Boundaries", label: "Knowledge classification", prompt: "What is public, internal, restricted, local-only, ephemeral, seasonal, or never recorded?", placeholder: "Record categories and handling rules without entering the protected knowledge itself." },
+  { key: "dataFlow", group: "Boundaries", label: "Data-flow map", prompt: "Where do collection, transfer, storage, inference, interpretation, sharing, and deletion occur?", placeholder: "Describe the route, locations, retention points, and prohibited flows." },
+  { key: "dependencies", group: "Operation", label: "Vendors & dependencies", prompt: "Which outside systems, licenses, hardware, people, or services can affect control?", placeholder: "Name each dependency, purpose, retention or reuse rights, failure mode, and exit option." },
+  { key: "allowed", group: "Operation", label: "Permitted uses", prompt: "What may happen, for whom, under which conditions?", placeholder: "List narrowly authorized uses; silence does not imply permission." },
+  { key: "prohibited", group: "Operation", label: "Prohibited uses", prompt: "What must the system, its operators, and downstream users never do?", placeholder: "Include training, inference, publication, commercialization, surveillance, and secondary-use boundaries as relevant." },
+  { key: "conditions", group: "Decision", label: "Decision conditions", prompt: "What must be true before launch, continued operation, change, or expansion?", placeholder: "Name the condition, owner, evidence needed, deadline, and consequence if unmet." },
+  { key: "review", group: "Decision", label: "Review triggers", prompt: "What dates, changes, events, or failures force reconsideration?", placeholder: "Include expiry, model or vendor change, new data, new audience, incident, community request, and performance drift." },
+  { key: "challenge", group: "Accountability", label: "Challenge & dissent", prompt: "How can a person or authority question a decision without retaliation or procedural burden?", placeholder: "Describe intake, standing, response time, independent review, escalation, and how dissent remains visible." },
+  { key: "incident", group: "Accountability", label: "Incident & repair", prompt: "Who acts when a boundary is crossed or harm occurs?", placeholder: "Define containment, notice, investigation, community direction, remedy, learning, and recurrence prevention." },
+  { key: "withdrawal", group: "Accountability", label: "Withdrawal & deletion", prompt: "How can permission be narrowed or withdrawn, and what can actually be deleted?", placeholder: "Distinguish future use, copies, derived data, models, backups, publications, and legal limits." },
+  { key: "migration", group: "Exit", label: "Migration & continuity", prompt: "Can the community move the system, records, and know-how without losing control?", placeholder: "Record export formats, documentation, replacement dependencies, skills transfer, cost, and continuity owner." },
+  { key: "retirement", group: "Exit", label: "Retirement & aftercare", prompt: "How is the system shut down, verified, archived, and remembered?", placeholder: "Define stop authority, shutdown sequence, deletion verification, surviving obligations, archive rules, and post-retirement review." },
+];
+
+const initialSystemRecord = Object.fromEntries(recordFields.map(field => [field.key, ""])) as Record<RecordKey, string>;
+
 function Mark({ children }: { children: React.ReactNode }) { return <span className="mark">{children}</span>; }
 
 export default function Home() {
@@ -41,6 +61,9 @@ export default function Home() {
   const [notes, setNotes] = useState<string[]>([]);
   const [projectName, setProjectName] = useState("");
   const [projectPurpose, setProjectPurpose] = useState("");
+  const [recordValues, setRecordValues] = useState(initialSystemRecord);
+  const [recordField, setRecordField] = useState<RecordKey>("purpose");
+  const [recordVisibility, setRecordVisibility] = useState<"Internal" | "Restricted" | "Public excerpt">("Internal");
   const resultRef = useRef<HTMLDivElement>(null);
 
   const result = useMemo(() => {
@@ -69,6 +92,11 @@ export default function Home() {
   }
   function returnToBeginning() { setView("overview"); window.scrollTo({ top: 0, behavior: "smooth" }); }
   function clearGate() { setAnswers([]); setNotes([]); setStep(0); setProjectName(""); setProjectPurpose(""); }
+  function carryToRecord() {
+    setRecordValues(current => ({ ...current, purpose: projectPurpose || current.purpose, conditions: openConditions.map(condition => `${condition.area}: ${condition.answer} — ${condition.note}`).join("\n") || current.conditions }));
+    setRecordField("purpose");
+    selectView("record");
+  }
   function exportRecord() {
     if (!result) return;
     const payload = {
@@ -84,6 +112,11 @@ export default function Home() {
     };
     const url = URL.createObjectURL(new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" }));
     const link = document.createElement("a"); link.href = url; link.download = `${(projectName || "sovereign-stack-review").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "sovereign-stack-review"}.json`; link.click(); URL.revokeObjectURL(url);
+  }
+  function exportSystemRecord() {
+    const payload = { status: "UNVALIDATED DEMONSTRATION", recordType: "Sovereign Stack living system record", project: projectName || "KILO example / unnamed proposed use", visibility: recordVisibility, exportedAt: new Date().toISOString(), fields: Object.fromEntries(recordFields.map(field => [field.label, recordValues[field.key] || "Unresolved — no entry recorded"])), completeness: `${recordFields.filter(field => recordValues[field.key].trim()).length} of ${recordFields.length} fields contain demonstration entries`, caveat: "This record is a local, unvalidated demonstration. It is not consent, approval, Purple Maiʻa policy, or a factual account of KILO governance." };
+    const url = URL.createObjectURL(new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" }));
+    const link = document.createElement("a"); link.href = url; link.download = `${(projectName || "sovereign-stack-system-record").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "sovereign-stack-system-record"}-system-record.json`; link.click(); URL.revokeObjectURL(url);
   }
 
   return <main>
@@ -139,25 +172,19 @@ export default function Home() {
         <p className="counter">Question {step+1} of {questions.length}</p><h3>{questions[step].title}</h3><p>{questions[step].prompt}</p>
         <div className="options">{questions[step].options.map(option=><button key={option} className={answers[step]===option?"selected":""} onClick={()=>choose(option)}><span/>{option}</button>)}</div>
         <label className="rationale"><span>Rationale, evidence, dissent, or unresolved question <i>optional in this demonstration</i></span><textarea value={notes[step] || ""} onChange={event=>{const next=[...notes];next[step]=event.target.value;setNotes(next)}} placeholder="Record why this response was chosen without entering protected content." rows={3}/></label>
-        {result && step===questions.length-1 && <div ref={resultRef} className="result" role="status" aria-live="polite"><p>Unvalidated demonstration result</p><h4>{result.label}</h4><span>{result.note}</span><div className="result-meta"><b>{projectName || "Unnamed proposed use"}</b><span>{openConditions.length} open or blocking condition{openConditions.length===1?"":"s"}</span></div>{openConditions.length>0&&<div className="condition-list">{openConditions.map(condition=><div key={condition.area}><b>{condition.area}</b><span>{condition.answer}</span><small>{condition.note}</small></div>)}</div>}<div className="result-actions"><button onClick={exportRecord}>Download review record</button><button onClick={()=>window.print()}>Print / save as PDF</button><button onClick={clearGate}>Clear demonstration</button></div></div>}
+        {result && step===questions.length-1 && <div ref={resultRef} className="result" role="status" aria-live="polite"><p>Unvalidated demonstration result</p><h4>{result.label}</h4><span>{result.note}</span><div className="result-meta"><b>{projectName || "Unnamed proposed use"}</b><span>{openConditions.length} open or blocking condition{openConditions.length===1?"":"s"}</span></div>{openConditions.length>0&&<div className="condition-list">{openConditions.map(condition=><div key={condition.area}><b>{condition.area}</b><span>{condition.answer}</span><small>{condition.note}</small></div>)}</div>}<div className="result-actions"><button onClick={carryToRecord}>Continue to system record →</button><button onClick={exportRecord}>Download review record</button><button onClick={()=>window.print()}>Print / save as PDF</button><button onClick={clearGate}>Clear demonstration</button></div></div>}
         <div className="gate-footer"><button disabled={step===0} onClick={()=>setStep(step-1)}>← Previous</button><span>Decision belongs to the designated authority</span><button disabled={step===questions.length-1} onClick={()=>setStep(step+1)}>Next →</button></div>
       </div></div>
       <div className="gate-after"><b>A production version would add:</b><span>Named roles and standing · evidence and rationale · approval conditions · dissent and unresolved questions · risk and benefit owners · review triggers and expiry · access controls · change history · challenge, incident, withdrawal, and repair paths.</span></div>
     </section>}
 
     {view === "record" && <section id="record-content" className="content record" tabIndex={-1}>
-      <div className="section-intro compact"><p className="overline">Living system record · proposed container</p><h2>KILO example</h2><p>This example demonstrates what a legible governance record could hold without exposing protected knowledge or security details. It is not a factual description of KILO’s current governance and does not imply Purple Maiʻa has selected KILO as a pilot.</p></div>
-      <div className="status-row"><span className="status">Unvalidated demonstration</span><span>Authority: not established · Review date: not established · Record owner: not established</span></div>
-      <div className="record-grid">
-        <article className="wide"><p className="label">Provisional community purpose</p><h3>Support place-based environmental observation and stewardship decisions while keeping sensitive information within appropriate local control.</h3><p>Source boundary: inferred from Purple Maiʻa’s public descriptions; requires correction or replacement.</p></article>
-        <article><p className="label">Authority &amp; standing</p><h3>To be defined by Purple Maiʻa and participating communities</h3><p className="flag">Blocking condition</p></article>
-        <article><p className="label">System &amp; data boundary</p><h3>To be mapped with the technical and community teams</h3><p>Collection, ephemeral data, storage, inference, interpretation, sharing, deletion, and prohibited flows must be distinguished.</p></article>
-        <article><p className="label">Potentially allowed—only if authorized</p><ul><li>Defined environmental observation</li><li>Local processing for an approved purpose</li><li>Human interpretation within the appropriate context</li><li>Stewardship support subject to stated limits</li></ul></article>
-        <article><p className="label">Prohibited unless specifically authorized</p><ul><li>External model training or vendor retention</li><li>Commercial reuse or secondary research</li><li>Publication of sensitive places or knowledge</li><li>Automated replacement of accountable judgment</li></ul></article>
-        <article><p className="label">Durable control test</p><div className="checks"><span>Inspect data route <b>Define</b></span><span>Pause system <b>Define</b></span><span>Withdraw / restrict <b>Define</b></span><span>Contest output <b>Define</b></span><span>Export / migrate <b>Test</b></span><span>Delete / retire <b>Test</b></span></div></article>
-        <article><p className="label">Accountability &amp; change</p><ol><li>Who owns an incident and repair?</li><li>Which changes require renewed authority?</li><li>How are dissent and contradictions retained?</li><li>When does permission expire?</li><li>What happens when a partner or vendor changes?</li></ol></article>
-      </div>
-      <div className="record-note"><b>Evidence rule:</b> each field would be tagged as community-defined rule, approved fact, interpretation, technical observation, proposal, or unresolved question. The record should never manufacture certainty—or reveal protected content—in order to appear complete.</div>
+      <div className="section-intro compact"><p className="overline">Living system record · working demonstration</p><h2>Carry a decision through the system’s life.</h2><p>This editable record demonstrates the container—not KILO’s actual governance. Enter only hypothetical or non-sensitive material. Nothing persists after refresh or leaves this page unless you download it.</p></div>
+      <div className="status-row"><span className="status">Unvalidated demonstration</span><span>{recordFields.filter(field=>recordValues[field.key].trim()).length} of {recordFields.length} fields drafted · Authority, record owner, and review date not established</span></div>
+      <div className="record-toolbar"><div><label>Record name<input value={projectName} onChange={event=>setProjectName(event.target.value)} placeholder="KILO example or another proposed use" /></label><label>Demonstration visibility<select value={recordVisibility} onChange={event=>setRecordVisibility(event.target.value as typeof recordVisibility)}><option>Internal</option><option>Restricted</option><option>Public excerpt</option></select></label></div><p><b>Classification is a governance decision, not a publishing toggle.</b> A production system would enforce access, approval, redaction, and separate public/internal records. This selector only demonstrates the required distinction.</p></div>
+      <div className="record-workspace"><aside aria-label="System record fields">{[...new Set(recordFields.map(field=>field.group))].map(group=><div key={group}><p>{group}</p>{recordFields.filter(field=>field.group===group).map(field=><button key={field.key} className={recordField===field.key?"active":""} onClick={()=>setRecordField(field.key)}><span>{recordValues[field.key].trim()?"✓":"○"}</span>{field.label}</button>)}</div>)}</aside><div className="record-editor">{recordFields.filter(field=>field.key===recordField).map(field=><div key={field.key}><p className="overline">{field.group} · editable field</p><h3>{field.label}</h3><p>{field.prompt}</p><label><span>Demonstration entry</span><textarea rows={11} value={recordValues[field.key]} onChange={event=>setRecordValues(current=>({...current,[field.key]:event.target.value}))} placeholder={field.placeholder}/></label><div className="record-guidance"><b>Evidence status must remain visible</b><span>In production, each entry would identify whether it is a community-defined rule, approved fact, technical observation, interpretation, proposal, dissent, or unresolved question—plus its source, authority, date, and review trigger.</span></div><div className="record-pagination"><button disabled={recordFields.findIndex(item=>item.key===recordField)===0} onClick={()=>setRecordField(recordFields[recordFields.findIndex(item=>item.key===recordField)-1].key)}>← Previous field</button><span>{recordFields.findIndex(item=>item.key===recordField)+1} of {recordFields.length}</span><button disabled={recordFields.findIndex(item=>item.key===recordField)===recordFields.length-1} onClick={()=>setRecordField(recordFields[recordFields.findIndex(item=>item.key===recordField)+1].key)}>Next field →</button></div></div>)}</div></div>
+      <div className="record-actions"><button className="primary" onClick={exportSystemRecord}>Download system record <span>↓</span></button><button onClick={()=>window.print()}>Print / save current view</button><button onClick={()=>{setRecordValues(initialSystemRecord);setRecordField("purpose")}}>Clear record</button></div>
+      <div className="record-note"><b>Hard boundary:</b> completeness never requires protected content. A field may say “restricted,” “not recorded,” “authority not established,” or “decision deferred.” Those are legitimate governance states—not missing data to be filled by an outsider.</div>
     </section>}
 
     {view === "pilot" && <section id="pilot-content" className="content pilot" tabIndex={-1}>
