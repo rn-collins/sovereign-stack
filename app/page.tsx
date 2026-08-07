@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 
-type View = "overview" | "proposal" | "gate" | "record" | "pilot" | "learning" | "readiness" | "session" | "charter";
+type View = "overview" | "proposal" | "gate" | "record" | "pilot" | "learning" | "readiness" | "session" | "charter" | "review";
 type RecordKey = "purpose" | "authority" | "knowledge" | "dataFlow" | "dependencies" | "allowed" | "prohibited" | "conditions" | "review" | "challenge" | "incident" | "withdrawal" | "migration" | "retirement";
 type Role = "Steward" | "Authority reviewer" | "Technical contributor" | "Observer";
 type LogEntry = { id: string; kind: "Change" | "Decision" | "Review" | "Incident"; summary: string; actor: string; at: string };
@@ -11,6 +11,7 @@ type ProductionStatus = "Not examined" | "Discovery underway" | "Draft decision"
 type ProductionDecisionRecord = { status: ProductionStatus; owner: string; evidence: string; conditions: string };
 type SessionRecord = { sponsor: string; participants: string; prework: string; boundaries: string; decisions: string; dissent: string; nextStep: string };
 type CharterRecord = { useCase: string; sponsor: string; authority: string; scope: string; exclusions: string; participants: string; outputs: string; acceptance: string; ownership: string; risks: string; stopConditions: string; timeline: string; handoff: string };
+type ReviewResponse = "I see a relevant constraint" | "Continue discovery" | "Revise the concept" | "Not useful now" | "Not mine to decide";
 
 const nav: { id: View; label: string; eyebrow: string }[] = [
   { id: "overview", label: "Why this layer", eyebrow: "01" },
@@ -22,6 +23,7 @@ const nav: { id: View; label: string; eyebrow: string }[] = [
   { id: "readiness", label: "Production path", eyebrow: "07" },
   { id: "session", label: "Co-design session", eyebrow: "08" },
   { id: "charter", label: "Pilot charter", eyebrow: "09" },
+  { id: "review", label: "Executive review", eyebrow: "10" },
 ];
 
 const sessionAgenda = [
@@ -126,6 +128,10 @@ export default function Home() {
   const [productionDecision, setProductionDecision] = useState(0);
   const [sessionRecord, setSessionRecord] = useState<SessionRecord>(initialSessionRecord);
   const [charterRecord, setCharterRecord] = useState<CharterRecord>(initialCharterRecord);
+  const [reviewResponse, setReviewResponse] = useState<ReviewResponse | "">("");
+  const [reviewConstraint, setReviewConstraint] = useState("");
+  const [reviewPeople, setReviewPeople] = useState("");
+  const [reviewBoundary, setReviewBoundary] = useState("");
   const resultRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -291,6 +297,22 @@ export default function Home() {
     const url = URL.createObjectURL(new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" }));
     const link = document.createElement("a"); link.href = url; link.download = `${(projectName || "sovereign-stack-system-record").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "sovereign-stack-system-record"}-system-record.json`; link.click(); URL.revokeObjectURL(url);
   }
+  function exportExecutiveBrief() {
+    const payload = {
+      document: "Sovereign Stack executive review brief",
+      status: "CONVERSATION RECORD — NOT AUTHORIZATION",
+      generatedAt: new Date().toISOString(),
+      proposition: "Explore whether Purple Maiʻa would benefit from a community-owned governance and learning layer that carries authority through the lifecycle of a technical system.",
+      response: reviewResponse || "No response selected",
+      constraint: reviewConstraint || "Not recorded",
+      peopleOrAuthoritiesToInclude: reviewPeople || "Not recorded",
+      boundaryOrExistingWorkToProtect: reviewBoundary || "Not recorded",
+      possibleNextStep: reviewResponse === "Continue discovery" || reviewResponse === "I see a relevant constraint" ? "Purple Maiʻa identifies a sponsor and appropriate participants for a bounded, compensated discovery conversation." : reviewResponse === "Revise the concept" ? "RN revises only against the specific constraint and boundaries Purple Maiʻa chooses to share." : "No work proceeds unless Purple Maiʻa later reopens the question.",
+      nonAuthorization: "This brief is not consent, approval, a pilot invitation, a contract, permission to document KILO, or permission to access or store protected information."
+    };
+    const url = URL.createObjectURL(new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" }));
+    const link = document.createElement("a"); link.href = url; link.download = "sovereign-stack-executive-review.json"; link.click(); URL.revokeObjectURL(url);
+  }
 
   return <main>
     <header className="topbar">
@@ -303,7 +325,7 @@ export default function Home() {
         <p className="overline">A proposed governance &amp; learning layer</p>
         <h1>Infrastructure can be local.<br/><em>Authority must travel through it.</em></h1>
         <p className="lede">A Purple Maiʻa-owned way to carry community purpose, authority, knowledge boundaries, accountability, and the right to refuse through the life of an AI system.</p>
-        <div className="hero-actions"><button className="primary light" onClick={() => selectView("proposal")}>See the proposal <span>→</span></button><button className="text-link" onClick={() => selectView("gate")}>Try the decision gate</button></div>
+        <div className="hero-actions"><button className="primary light" onClick={() => selectView("proposal")}>See the proposal <span>→</span></button><button className="text-link" onClick={() => selectView("review")}>Executive review</button></div>
       </div>
       <div className="hero-orbit" aria-label="Illustration of governance surrounding a technical system"><div className="orbit orbit-a"><span>Purpose</span><span>Authority</span></div><div className="orbit orbit-b"><span>Knowledge</span><span>Control</span></div><div className="orbit-core">Use case<br/><small>under review</small></div></div>
     </section>
@@ -433,6 +455,28 @@ export default function Home() {
         <div className="charter-output"><div><b>Review before invitation</b><span>A complete charter is still a draft.</span></div><p>The pilot begins only when the appropriate authorities and organizational sponsor accept the exact scope and conditions through a separately valid process. No checkbox or download on this site can do that.</p><button className="primary" onClick={exportPilotCharter}>Download pilot charter <span>↓</span></button></div>
       </div>
       <div className="decision-box"><div><p className="overline">The engagement boundary</p><h3>Discovery may invite a pilot. A pilot may produce evidence. Neither authorizes production.</h3></div><p>Production, protected-data storage, public learning materials, reuse, or expansion each return to their own authority and decision gates. The engagement remains valid even if the final recommendation is to stop or use a non-AI path.</p></div>
+    </section>}
+
+    {view === "review" && <section id="review-content" className="content executive-review" tabIndex={-1}>
+      <div className="section-intro compact"><p className="overline">Executive review · the whole proposition in one room</p><h2>Is there enough here to justify a governed discovery conversation?</h2><p>This is the shortest path through the proposal. It does not ask Purple Maiʻa to approve the framework, disclose protected knowledge, select KILO, or authorize a build. It asks whether RN has identified a real constraint worth defining with the right people.</p></div>
+      <div className="executive-grid">
+        <article><span>What RN observed</span><h3>The technical stack is only part of sovereignty.</h3><p>Purple Maiʻa’s public work already demonstrates local infrastructure, models, edge systems, education, and place-based practice. The possible unresolved layer is how authority, boundaries, review, refusal, repair, and exit remain operational as systems change.</p></article>
+        <article><span>What RN proposes</span><h3>A governance pathway Purple Maiʻa would own.</h3><p>A decision protocol, living system record, bounded pilot, and optional learning translation—co-designed only if Purple Maiʻa identifies a need and the relevant authorities define the rules.</p></article>
+        <article><span>What exists now</span><h3>A working demonstration, not an adopted system.</h3><p>The prototype makes the workflow tangible: gate, record, production choices, co-design agenda, and pilot charter. It intentionally stores no protected organizational data and creates no authority.</p></article>
+        <article><span>What RN is asking</span><h3>Permission to learn whether the problem is real.</h3><p>The immediate decision is whether a bounded, appropriately compensated discovery conversation would be useful—and who must be involved to define the question correctly.</p></article>
+      </div>
+      <div className="executive-boundaries"><p className="overline">Non-negotiable boundaries</p><div><span>No claim to Indigenous authority</span><span>No presumption that KILO is the pilot</span><span>No protected data in this prototype</span><span>No publication without separate approval</span><span>No production by momentum</span><span>Stop is a successful outcome</span></div></div>
+      <div className="review-room">
+        <div className="review-room-head"><div><p className="overline">CEO response path · browser demonstration</p><h3>Record direction without accidentally granting permission.</h3></div><p>Use only non-sensitive notes. Download creates a conversation brief, not an authorization record.</p></div>
+        <div className="response-options">{(["I see a relevant constraint", "Continue discovery", "Revise the concept", "Not useful now", "Not mine to decide"] as ReviewResponse[]).map(response=><button key={response} className={reviewResponse===response?"selected":""} onClick={()=>setReviewResponse(response)}><span>{reviewResponse===response?"✓":"○"}</span>{response}</button>)}</div>
+        <div className="review-fields">
+          <label>What constraint, if any, is worth defining?<textarea rows={3} value={reviewConstraint} onChange={event=>setReviewConstraint(event.target.value)} placeholder="A non-sensitive description in Purple Maiʻa’s own terms." /></label>
+          <label>Who should shape or decide the question?<textarea rows={3} value={reviewPeople} onChange={event=>setReviewPeople(event.target.value)} placeholder="Roles or bodies—not private personal information." /></label>
+          <label>What existing work or boundary must RN protect?<textarea rows={3} value={reviewBoundary} onChange={event=>setReviewBoundary(event.target.value)} placeholder="Work not to duplicate; topics not to document; assumptions to remove." /></label>
+        </div>
+        <div className="review-close"><div><b>{reviewResponse || "No direction selected"}</b><span>{reviewResponse === "Continue discovery" || reviewResponse === "I see a relevant constraint" ? "Possible next step: define a bounded discovery invitation." : reviewResponse === "Revise the concept" ? "Possible next step: revise only against the direction provided." : reviewResponse ? "No work proceeds from this response." : "Reviewing the proposal does not imply interest or consent."}</span></div><button className="primary" disabled={!reviewResponse} onClick={exportExecutiveBrief}>Download executive review <span>↓</span></button></div>
+      </div>
+      <div className="decision-box"><div><p className="overline">The one-sentence proposition</p><h3>Purple Maiʻa has built sovereign technical capacity; RN may be useful in helping operationalize the governance and learning layer around it.</h3></div><p>The site is evidence that RN can think and build at this level. Whether the proposed layer is actually useful remains Purple Maiʻa’s question to define.</p></div>
     </section>}
 
     <footer><div><span className="knot">◈</span><b>The Sovereign Stack</b></div><p>A working proposal prepared by Rayven-Nikkita (RN) Collins for conversation with Purple Maiʻa. Nothing here represents Purple Maiʻa policy, community consent, an approved protocol, or a factual account beyond the specifically linked public sources.</p></footer>
