@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 
-type View = "overview" | "proposal" | "gate" | "record" | "pilot" | "learning" | "readiness" | "session";
+type View = "overview" | "proposal" | "gate" | "record" | "pilot" | "learning" | "readiness" | "session" | "charter";
 type RecordKey = "purpose" | "authority" | "knowledge" | "dataFlow" | "dependencies" | "allowed" | "prohibited" | "conditions" | "review" | "challenge" | "incident" | "withdrawal" | "migration" | "retirement";
 type Role = "Steward" | "Authority reviewer" | "Technical contributor" | "Observer";
 type LogEntry = { id: string; kind: "Change" | "Decision" | "Review" | "Incident"; summary: string; actor: string; at: string };
@@ -10,6 +10,7 @@ type Snapshot = { id: string; label: string; at: string; fields: Record<RecordKe
 type ProductionStatus = "Not examined" | "Discovery underway" | "Draft decision" | "Approved for prototype" | "Blocked";
 type ProductionDecisionRecord = { status: ProductionStatus; owner: string; evidence: string; conditions: string };
 type SessionRecord = { sponsor: string; participants: string; prework: string; boundaries: string; decisions: string; dissent: string; nextStep: string };
+type CharterRecord = { useCase: string; sponsor: string; authority: string; scope: string; exclusions: string; participants: string; outputs: string; acceptance: string; ownership: string; risks: string; stopConditions: string; timeline: string; handoff: string };
 
 const nav: { id: View; label: string; eyebrow: string }[] = [
   { id: "overview", label: "Why this layer", eyebrow: "01" },
@@ -20,6 +21,7 @@ const nav: { id: View; label: string; eyebrow: string }[] = [
   { id: "learning", label: "Learning layer", eyebrow: "06" },
   { id: "readiness", label: "Production path", eyebrow: "07" },
   { id: "session", label: "Co-design session", eyebrow: "08" },
+  { id: "charter", label: "Pilot charter", eyebrow: "09" },
 ];
 
 const sessionAgenda = [
@@ -32,6 +34,23 @@ const sessionAgenda = [
 ] as const;
 
 const initialSessionRecord: SessionRecord = { sponsor: "", participants: "", prework: "", boundaries: "", decisions: "", dissent: "", nextStep: "" };
+const initialCharterRecord: CharterRecord = { useCase: "", sponsor: "", authority: "", scope: "", exclusions: "", participants: "", outputs: "", acceptance: "", ownership: "", risks: "", stopConditions: "", timeline: "", handoff: "" };
+
+const charterFields: { key: keyof CharterRecord; label: string; prompt: string; wide?: boolean }[] = [
+  { key: "useCase", label: "Bounded use case", prompt: "What single, non-sensitive use or governance question is the pilot permitted to examine?", wide: true },
+  { key: "sponsor", label: "Organizational sponsor", prompt: "Which role or body convenes the pilot, supplies resources, and can stop organizational work?" },
+  { key: "authority", label: "Authority and standing", prompt: "Which roles or bodies may define boundaries, validate, condition, refuse, or withdraw the pilot?" },
+  { key: "scope", label: "Work explicitly in scope", prompt: "Name the research, mapping, facilitation, prototyping, testing, and documentation actually invited." },
+  { key: "exclusions", label: "Work explicitly out of scope", prompt: "Name protected knowledge, production operation, legal determinations, community-wide claims, or other excluded work." },
+  { key: "participants", label: "Participants and responsibilities", prompt: "Who defines, advises, operates, experiences, challenges, decides, documents, and maintains?" },
+  { key: "outputs", label: "Tangible outputs", prompt: "What editable records, prototype components, maps, findings, training, documentation, or recommendations are transferred?" },
+  { key: "acceptance", label: "Acceptance and success criteria", prompt: "What observable tests show the work is usable, accurate enough, non-burdensome, governable, and ready to accept—or reject?" },
+  { key: "ownership", label: "Ownership, custody, and publication", prompt: "Who owns source, artifacts, research notes, improvements, and approved excerpts? What may RN retain or reference?" },
+  { key: "risks", label: "Dependencies and risks", prompt: "What access, availability, technical constraints, conflicts, missing voices, or external dependencies could invalidate the work?" },
+  { key: "stopConditions", label: "Pause and stop conditions", prompt: "Which boundary crossings, missing authority, burden, disagreement, incident, or new fact automatically pauses or ends work?" },
+  { key: "timeline", label: "Cadence and decision points", prompt: "Define phases, working sessions, review windows, compensation assumptions, and explicit stop/go gates—not an invented deadline." },
+  { key: "handoff", label: "Transfer, aftercare, and close", prompt: "What must be documented, taught, exported, deleted, returned, reviewed, maintained, or retired when the engagement ends?", wide: true },
+];
 
 const productionDecisions = [
   ["Authority & membership", "Who may enter the workspace, who grants and revokes roles, and how authority is verified beyond ordinary account ownership."],
@@ -106,6 +125,7 @@ export default function Home() {
   const [productionRecords, setProductionRecords] = useState<ProductionDecisionRecord[]>(initialProductionRecords);
   const [productionDecision, setProductionDecision] = useState(0);
   const [sessionRecord, setSessionRecord] = useState<SessionRecord>(initialSessionRecord);
+  const [charterRecord, setCharterRecord] = useState<CharterRecord>(initialCharterRecord);
   const resultRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -120,6 +140,7 @@ export default function Home() {
         setSnapshots(parsed.snapshots || []); setLogEntries(parsed.logEntries || []);
         setProductionRecords(parsed.productionRecords?.length === productionDecisions.length ? parsed.productionRecords : initialProductionRecords);
         setSessionRecord({ ...initialSessionRecord, ...parsed.sessionRecord });
+        setCharterRecord({ ...initialCharterRecord, ...parsed.charterRecord });
       }
     } catch { /* A corrupt browser draft is ignored. */ }
     setStorageReady(true);
@@ -127,8 +148,8 @@ export default function Home() {
 
   useEffect(() => {
     if (!storageReady) return;
-    window.localStorage.setItem("sovereign-stack-demo-record", JSON.stringify({ recordValues, projectName, recordVisibility, recordOwner, reviewDate, decisionStatus, decisionNote, snapshots, logEntries, productionRecords, sessionRecord }));
-  }, [storageReady, recordValues, projectName, recordVisibility, recordOwner, reviewDate, decisionStatus, decisionNote, snapshots, logEntries, productionRecords, sessionRecord]);
+    window.localStorage.setItem("sovereign-stack-demo-record", JSON.stringify({ recordValues, projectName, recordVisibility, recordOwner, reviewDate, decisionStatus, decisionNote, snapshots, logEntries, productionRecords, sessionRecord, charterRecord }));
+  }, [storageReady, recordValues, projectName, recordVisibility, recordOwner, reviewDate, decisionStatus, decisionNote, snapshots, logEntries, productionRecords, sessionRecord, charterRecord]);
 
   const canEdit = activeRole === "Steward" || activeRole === "Technical contributor";
   const canDecide = activeRole === "Authority reviewer";
@@ -241,6 +262,29 @@ export default function Home() {
     };
     const url = URL.createObjectURL(new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" }));
     const link = document.createElement("a"); link.href = url; link.download = "sovereign-stack-codesign-session-brief.json"; link.click(); URL.revokeObjectURL(url);
+  }
+  function updateCharterRecord(key: keyof CharterRecord, value: string) {
+    setCharterRecord(current => ({ ...current, [key]: value }));
+  }
+  function exportPilotCharter() {
+    const drafted = Object.values(charterRecord).filter(value => value.trim()).length;
+    const payload = {
+      document: "Sovereign Stack bounded pilot charter",
+      status: "DRAFT — INVITATION AND AUTHORITY REQUIRED",
+      generatedAt: new Date().toISOString(),
+      readiness: { drafted, total: charterFields.length, determination: drafted === charterFields.length ? "Complete enough for authority review; not approved." : "Incomplete draft; unresolved fields remain visible." },
+      charter: charterRecord,
+      requiredGates: [
+        "The relevant authority confirms standing, knowledge boundaries, and the permitted use case.",
+        "Purple Maiʻa confirms scope, compensation, confidentiality, ownership, participants, and organizational sponsor.",
+        "Protected information remains outside the demonstration unless separately authorized production controls exist.",
+        "A named stop/go decision occurs after discovery and again before any implementation or public learning output.",
+        "Transfer, deletion, retention, maintenance, and retirement obligations are agreed before work begins."
+      ],
+      nonAuthorization: "Completing or downloading this charter does not create a contract, consent, community authority, Purple Maiʻa approval, permission to access protected knowledge, or permission to build or deploy a production system."
+    };
+    const url = URL.createObjectURL(new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" }));
+    const link = document.createElement("a"); link.href = url; link.download = "sovereign-stack-bounded-pilot-charter.json"; link.click(); URL.revokeObjectURL(url);
   }
   function exportSystemRecord() {
     const payload = { status: "UNVALIDATED DEMONSTRATION", recordType: "Sovereign Stack living system record", project: projectName || "KILO example / unnamed proposed use", visibility: recordVisibility, steward: recordOwner || "Not established", nextReview: reviewDate || "Not scheduled", authorityDecision: decisionStatus, exportedAt: new Date().toISOString(), fields: Object.fromEntries(recordFields.map(field => [field.label, recordValues[field.key] || "Unresolved — no entry recorded"])), versionHistory: snapshots, activityLog: logEntries, completeness: `${recordFields.filter(field => recordValues[field.key].trim()).length} of ${recordFields.length} fields contain demonstration entries`, caveat: "This record is a browser-local, unvalidated demonstration. Its roles and signatures are not identity-verified. It is not consent, approval, Purple Maiʻa policy, or a factual account of KILO governance." };
@@ -378,6 +422,17 @@ export default function Home() {
         <div className="session-output"><div><b>{Object.values(sessionRecord).filter(value=>value.trim()).length}/7</b><span>preparation fields drafted</span></div><p><strong>A complete form is not a valid session.</strong> Validity depends on legitimate participation, boundaries, preserved dissent, and an authorized close—not on filling every box.</p><button className="primary" onClick={exportSessionBrief}>Download facilitation brief <span>↓</span></button></div>
       </div>
       <div className="decision-box"><div><p className="overline">What Donavan is asked to decide first</p><h3>Is there a real governance or learning constraint worth exploring—and who should be in the room to define it?</h3></div><p>Not whether to approve this framework. Not whether KILO becomes the pilot. Not whether a backend should be activated. The first decision is simply whether a properly scoped, appropriately governed discovery process would be useful.</p></div>
+    </section>}
+
+    {view === "charter" && <section id="charter-content" className="content charter" tabIndex={-1}>
+      <div className="section-intro compact"><p className="overline">Bounded pilot charter · invitation before implementation</p><h2>Turn a useful discovery into a precise, governable engagement.</h2><p>This charter exists for the moment after discovery identifies a real need. It prevents enthusiasm from silently expanding into authority, access, production, publication, or an indefinite consulting relationship.</p></div>
+      <div className="charter-gates"><article><span>Gate 01</span><h3>Need confirmed</h3><p>Purple Maiʻa names the actual constraint and determines that a pilot—not another intervention or stopping—is worth considering.</p></article><article><span>Gate 02</span><h3>Standing confirmed</h3><p>The relevant roles or bodies define what may be examined, recorded, decided, challenged, and refused.</p></article><article><span>Gate 03</span><h3>Invitation bounded</h3><p>Scope, resources, compensation, confidentiality, ownership, outputs, tests, stop conditions, and transfer are explicit.</p></article></div>
+      <div className="charter-workspace">
+        <div className="charter-head"><div><p className="overline">Pilot charter builder · browser demonstration</p><h3>Define the container before doing the work.</h3></div><div className="charter-score"><strong>{Object.values(charterRecord).filter(value=>value.trim()).length}/{charterFields.length}</strong><span>fields drafted</span><small>Completion permits review, never approval</small></div></div>
+        <div className="charter-fields">{charterFields.map(field=><label key={field.key} className={field.wide?"wide":""}><span>{field.label}</span><small>{field.prompt}</small><textarea rows={4} value={charterRecord[field.key]} onChange={event=>updateCharterRecord(field.key,event.target.value)} placeholder="Use provisional roles and non-sensitive information. Preserve unresolved questions rather than guessing." /></label>)}</div>
+        <div className="charter-output"><div><b>Review before invitation</b><span>A complete charter is still a draft.</span></div><p>The pilot begins only when the appropriate authorities and organizational sponsor accept the exact scope and conditions through a separately valid process. No checkbox or download on this site can do that.</p><button className="primary" onClick={exportPilotCharter}>Download pilot charter <span>↓</span></button></div>
+      </div>
+      <div className="decision-box"><div><p className="overline">The engagement boundary</p><h3>Discovery may invite a pilot. A pilot may produce evidence. Neither authorizes production.</h3></div><p>Production, protected-data storage, public learning materials, reuse, or expansion each return to their own authority and decision gates. The engagement remains valid even if the final recommendation is to stop or use a non-AI path.</p></div>
     </section>}
 
     <footer><div><span className="knot">◈</span><b>The Sovereign Stack</b></div><p>A working proposal prepared by Rayven-Nikkita (RN) Collins for conversation with Purple Maiʻa. Nothing here represents Purple Maiʻa policy, community consent, an approved protocol, or a factual account beyond the specifically linked public sources.</p></footer>
