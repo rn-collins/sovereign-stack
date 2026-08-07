@@ -38,6 +38,9 @@ export default function Home() {
   const [view, setView] = useState<View>("overview");
   const [step, setStep] = useState(0);
   const [answers, setAnswers] = useState<string[]>([]);
+  const [notes, setNotes] = useState<string[]>([]);
+  const [projectName, setProjectName] = useState("");
+  const [projectPurpose, setProjectPurpose] = useState("");
   const resultRef = useRef<HTMLDivElement>(null);
 
   const result = useMemo(() => {
@@ -49,21 +52,38 @@ export default function Home() {
     return { label: "Eligible for authority review", note: "The proposal may move to the designated authority for deliberation. Passing this gate is not consent, approval, or proof that the project should be built." };
   }, [answers]);
 
+  const openConditions = useMemo(() => questions.flatMap((question, index) => {
+    const answer = answers[index];
+    if (!answer || /community-defined|named and involved|adds necessary|are defined|are known|is operational|are defined/.test(answer)) return [];
+    return [{ area: question.title, answer, note: notes[index] || "No rationale recorded" }];
+  }), [answers, notes]);
+
   function choose(answer: string) {
     const next = [...answers]; next[step] = answer; setAnswers(next.slice(0, step + 1));
-    if (step < questions.length - 1) {
-      setStep(step + 1);
-    } else {
-      window.setTimeout(() => resultRef.current?.scrollIntoView({ behavior: "smooth", block: "center" }), 0);
-    }
+    if (step < questions.length - 1) setStep(step + 1);
+    else window.setTimeout(() => resultRef.current?.scrollIntoView({ behavior: "smooth", block: "center" }), 0);
   }
   function selectView(id: View) {
     setView(id);
     window.setTimeout(() => document.getElementById(`${id}-content`)?.scrollIntoView({ behavior: "smooth", block: "start" }), 0);
   }
-  function returnToBeginning() {
-    setView("overview");
-    window.scrollTo({ top: 0, behavior: "smooth" });
+  function returnToBeginning() { setView("overview"); window.scrollTo({ top: 0, behavior: "smooth" }); }
+  function clearGate() { setAnswers([]); setNotes([]); setStep(0); setProjectName(""); setProjectPurpose(""); }
+  function exportRecord() {
+    if (!result) return;
+    const payload = {
+      status: "UNVALIDATED DEMONSTRATION",
+      project: projectName || "Unnamed proposed use",
+      statedPurpose: projectPurpose || "Not recorded",
+      outcome: result.label,
+      outcomeNote: result.note,
+      reviewedAt: new Date().toISOString(),
+      responses: questions.map((question, index) => ({ area: question.title, question: question.prompt, response: answers[index], rationale: notes[index] || "Not recorded" })),
+      openConditions,
+      caveat: "This demonstration is not consent, approval, Purple Maiʻa policy, or a substitute for the designated authority's deliberation."
+    };
+    const url = URL.createObjectURL(new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" }));
+    const link = document.createElement("a"); link.href = url; link.download = `${(projectName || "sovereign-stack-review").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "sovereign-stack-review"}.json`; link.click(); URL.revokeObjectURL(url);
   }
 
   return <main>
@@ -114,10 +134,12 @@ export default function Home() {
 
     {view === "gate" && <section id="gate-content" className="content gate" tabIndex={-1}>
       <div className="section-intro compact"><p className="overline">Pre-build protocol · demonstration</p><h2>Should this enter the stack?</h2><p>No answers leave this page or persist after refresh. This simplified gate shows how a project can stop before technology outruns authority. In practice, deliberation, evidence, named roles, conditions, dissent, and review dates would sit behind each response.</p></div>
-      <div className="gate-shell"><aside>{questions.map((q,i)=><button key={q.title} className={`${i===step?"current":""} ${answers[i]?"done":""}`} onClick={()=>setStep(i)}><span>{answers[i]?"✓":i+1}</span>{q.title}</button>)}</aside><div className="question-panel">
+      <div className="gate-intake" aria-label="Proposed use context"><label><span>Proposed use or project</span><input value={projectName} onChange={event=>setProjectName(event.target.value)} placeholder="e.g., a local environmental observation tool" /></label><label><span>Community purpose—as currently understood</span><textarea value={projectPurpose} onChange={event=>setProjectPurpose(event.target.value)} placeholder="State the need without entering restricted or sensitive knowledge." rows={2} /></label><p><b>Privacy boundary</b> · Use a hypothetical or non-sensitive scenario. This demonstration stores nothing after refresh.</p></div>
+      <div className="gate-shell"><aside>{questions.map((q,i)=><button key={q.title} className={`${i===step?"current":""} ${answers[i]?"done":""}`} onClick={()=>setStep(i)} aria-current={i===step?"step":undefined}><span>{answers[i]?"✓":i+1}</span>{q.title}</button>)}</aside><div className="question-panel">
         <p className="counter">Question {step+1} of {questions.length}</p><h3>{questions[step].title}</h3><p>{questions[step].prompt}</p>
         <div className="options">{questions[step].options.map(option=><button key={option} className={answers[step]===option?"selected":""} onClick={()=>choose(option)}><span/>{option}</button>)}</div>
-        {result && step===questions.length-1 && <div ref={resultRef} className="result" role="status" aria-live="polite"><p>Demonstration result</p><h4>{result.label}</h4><span>{result.note}</span><button onClick={()=>{setAnswers([]);setStep(0)}}>Clear demonstration</button></div>}
+        <label className="rationale"><span>Rationale, evidence, dissent, or unresolved question <i>optional in this demonstration</i></span><textarea value={notes[step] || ""} onChange={event=>{const next=[...notes];next[step]=event.target.value;setNotes(next)}} placeholder="Record why this response was chosen without entering protected content." rows={3}/></label>
+        {result && step===questions.length-1 && <div ref={resultRef} className="result" role="status" aria-live="polite"><p>Unvalidated demonstration result</p><h4>{result.label}</h4><span>{result.note}</span><div className="result-meta"><b>{projectName || "Unnamed proposed use"}</b><span>{openConditions.length} open or blocking condition{openConditions.length===1?"":"s"}</span></div>{openConditions.length>0&&<div className="condition-list">{openConditions.map(condition=><div key={condition.area}><b>{condition.area}</b><span>{condition.answer}</span><small>{condition.note}</small></div>)}</div>}<div className="result-actions"><button onClick={exportRecord}>Download review record</button><button onClick={()=>window.print()}>Print / save as PDF</button><button onClick={clearGate}>Clear demonstration</button></div></div>}
         <div className="gate-footer"><button disabled={step===0} onClick={()=>setStep(step-1)}>← Previous</button><span>Decision belongs to the designated authority</span><button disabled={step===questions.length-1} onClick={()=>setStep(step+1)}>Next →</button></div>
       </div></div>
       <div className="gate-after"><b>A production version would add:</b><span>Named roles and standing · evidence and rationale · approval conditions · dissent and unresolved questions · risk and benefit owners · review triggers and expiry · access controls · change history · challenge, incident, withdrawal, and repair paths.</span></div>
