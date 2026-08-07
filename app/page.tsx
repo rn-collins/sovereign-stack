@@ -1,9 +1,12 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 type View = "overview" | "proposal" | "gate" | "record" | "pilot" | "learning";
 type RecordKey = "purpose" | "authority" | "knowledge" | "dataFlow" | "dependencies" | "allowed" | "prohibited" | "conditions" | "review" | "challenge" | "incident" | "withdrawal" | "migration" | "retirement";
+type Role = "Steward" | "Authority reviewer" | "Technical contributor" | "Observer";
+type LogEntry = { id: string; kind: "Change" | "Decision" | "Review" | "Incident"; summary: string; actor: string; at: string };
+type Snapshot = { id: string; label: string; at: string; fields: Record<RecordKey, string> };
 
 const nav: { id: View; label: string; eyebrow: string }[] = [
   { id: "overview", label: "Why this layer", eyebrow: "01" },
@@ -64,7 +67,51 @@ export default function Home() {
   const [recordValues, setRecordValues] = useState(initialSystemRecord);
   const [recordField, setRecordField] = useState<RecordKey>("purpose");
   const [recordVisibility, setRecordVisibility] = useState<"Internal" | "Restricted" | "Public excerpt">("Internal");
+  const [activeRole, setActiveRole] = useState<Role>("Steward");
+  const [recordOwner, setRecordOwner] = useState("");
+  const [reviewDate, setReviewDate] = useState("");
+  const [decisionStatus, setDecisionStatus] = useState("Draft — no authority decision");
+  const [decisionNote, setDecisionNote] = useState("");
+  const [snapshots, setSnapshots] = useState<Snapshot[]>([]);
+  const [logEntries, setLogEntries] = useState<LogEntry[]>([]);
+  const [logDraft, setLogDraft] = useState("");
+  const [storageReady, setStorageReady] = useState(false);
   const resultRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    try {
+      const saved = window.localStorage.getItem("sovereign-stack-demo-record");
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        setRecordValues({ ...initialSystemRecord, ...parsed.recordValues });
+        setProjectName(parsed.projectName || ""); setRecordVisibility(parsed.recordVisibility || "Internal");
+        setRecordOwner(parsed.recordOwner || ""); setReviewDate(parsed.reviewDate || "");
+        setDecisionStatus(parsed.decisionStatus || "Draft — no authority decision"); setDecisionNote(parsed.decisionNote || "");
+        setSnapshots(parsed.snapshots || []); setLogEntries(parsed.logEntries || []);
+      }
+    } catch { /* A corrupt browser draft is ignored. */ }
+    setStorageReady(true);
+  }, []);
+
+  useEffect(() => {
+    if (!storageReady) return;
+    window.localStorage.setItem("sovereign-stack-demo-record", JSON.stringify({ recordValues, projectName, recordVisibility, recordOwner, reviewDate, decisionStatus, decisionNote, snapshots, logEntries }));
+  }, [storageReady, recordValues, projectName, recordVisibility, recordOwner, reviewDate, decisionStatus, decisionNote, snapshots, logEntries]);
+
+  const canEdit = activeRole === "Steward" || activeRole === "Technical contributor";
+  const canDecide = activeRole === "Authority reviewer";
+  function addLog(kind: LogEntry["kind"], summary: string) {
+    if (!summary.trim()) return;
+    setLogEntries(current => [{ id: crypto.randomUUID(), kind, summary: summary.trim(), actor: `${activeRole} (demonstration)`, at: new Date().toISOString() }, ...current]);
+  }
+  function saveSnapshot() {
+    const next = { id: crypto.randomUUID(), label: `Version ${snapshots.length + 1}`, at: new Date().toISOString(), fields: { ...recordValues } };
+    setSnapshots(current => [next, ...current]); addLog("Change", `${next.label} preserved as a read-only demonstration snapshot.`);
+  }
+  function recordDecision() {
+    if (!canDecide || !decisionNote.trim()) return;
+    addLog("Decision", `${decisionStatus}: ${decisionNote}`); setDecisionNote("");
+  }
 
   const result = useMemo(() => {
     if (answers.length < questions.length) return null;
@@ -114,7 +161,7 @@ export default function Home() {
     const link = document.createElement("a"); link.href = url; link.download = `${(projectName || "sovereign-stack-review").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "sovereign-stack-review"}.json`; link.click(); URL.revokeObjectURL(url);
   }
   function exportSystemRecord() {
-    const payload = { status: "UNVALIDATED DEMONSTRATION", recordType: "Sovereign Stack living system record", project: projectName || "KILO example / unnamed proposed use", visibility: recordVisibility, exportedAt: new Date().toISOString(), fields: Object.fromEntries(recordFields.map(field => [field.label, recordValues[field.key] || "Unresolved — no entry recorded"])), completeness: `${recordFields.filter(field => recordValues[field.key].trim()).length} of ${recordFields.length} fields contain demonstration entries`, caveat: "This record is a local, unvalidated demonstration. It is not consent, approval, Purple Maiʻa policy, or a factual account of KILO governance." };
+    const payload = { status: "UNVALIDATED DEMONSTRATION", recordType: "Sovereign Stack living system record", project: projectName || "KILO example / unnamed proposed use", visibility: recordVisibility, steward: recordOwner || "Not established", nextReview: reviewDate || "Not scheduled", authorityDecision: decisionStatus, exportedAt: new Date().toISOString(), fields: Object.fromEntries(recordFields.map(field => [field.label, recordValues[field.key] || "Unresolved — no entry recorded"])), versionHistory: snapshots, activityLog: logEntries, completeness: `${recordFields.filter(field => recordValues[field.key].trim()).length} of ${recordFields.length} fields contain demonstration entries`, caveat: "This record is a browser-local, unvalidated demonstration. Its roles and signatures are not identity-verified. It is not consent, approval, Purple Maiʻa policy, or a factual account of KILO governance." };
     const url = URL.createObjectURL(new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" }));
     const link = document.createElement("a"); link.href = url; link.download = `${(projectName || "sovereign-stack-system-record").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "sovereign-stack-system-record"}-system-record.json`; link.click(); URL.revokeObjectURL(url);
   }
@@ -183,7 +230,17 @@ export default function Home() {
       <div className="status-row"><span className="status">Unvalidated demonstration</span><span>{recordFields.filter(field=>recordValues[field.key].trim()).length} of {recordFields.length} fields drafted · Authority, record owner, and review date not established</span></div>
       <div className="record-toolbar"><div><label>Record name<input value={projectName} onChange={event=>setProjectName(event.target.value)} placeholder="KILO example or another proposed use" /></label><label>Demonstration visibility<select value={recordVisibility} onChange={event=>setRecordVisibility(event.target.value as typeof recordVisibility)}><option>Internal</option><option>Restricted</option><option>Public excerpt</option></select></label></div><p><b>Classification is a governance decision, not a publishing toggle.</b> A production system would enforce access, approval, redaction, and separate public/internal records. This selector only demonstrates the required distinction.</p></div>
       <div className="record-workspace"><aside aria-label="System record fields">{[...new Set(recordFields.map(field=>field.group))].map(group=><div key={group}><p>{group}</p>{recordFields.filter(field=>field.group===group).map(field=><button key={field.key} className={recordField===field.key?"active":""} onClick={()=>setRecordField(field.key)}><span>{recordValues[field.key].trim()?"✓":"○"}</span>{field.label}</button>)}</div>)}</aside><div className="record-editor">{recordFields.filter(field=>field.key===recordField).map(field=><div key={field.key}><p className="overline">{field.group} · editable field</p><h3>{field.label}</h3><p>{field.prompt}</p><label><span>Demonstration entry</span><textarea rows={11} value={recordValues[field.key]} onChange={event=>setRecordValues(current=>({...current,[field.key]:event.target.value}))} placeholder={field.placeholder}/></label><div className="record-guidance"><b>Evidence status must remain visible</b><span>In production, each entry would identify whether it is a community-defined rule, approved fact, technical observation, interpretation, proposal, dissent, or unresolved question—plus its source, authority, date, and review trigger.</span></div><div className="record-pagination"><button disabled={recordFields.findIndex(item=>item.key===recordField)===0} onClick={()=>setRecordField(recordFields[recordFields.findIndex(item=>item.key===recordField)-1].key)}>← Previous field</button><span>{recordFields.findIndex(item=>item.key===recordField)+1} of {recordFields.length}</span><button disabled={recordFields.findIndex(item=>item.key===recordField)===recordFields.length-1} onClick={()=>setRecordField(recordFields[recordFields.findIndex(item=>item.key===recordField)+1].key)}>Next field →</button></div></div>)}</div></div>
-      <div className="record-actions"><button className="primary" onClick={exportSystemRecord}>Download system record <span>↓</span></button><button onClick={()=>window.print()}>Print / save current view</button><button onClick={()=>{setRecordValues(initialSystemRecord);setRecordField("purpose")}}>Clear record</button></div>
+      <div className="governance-console">
+        <div className="console-head"><div><p className="overline">Governed persistence · browser demonstration</p><h3>Control the record around the record.</h3></div><label>Preview a role<select value={activeRole} onChange={event=>setActiveRole(event.target.value as Role)}><option>Steward</option><option>Authority reviewer</option><option>Technical contributor</option><option>Observer</option></select></label></div>
+        <div className="security-boundary"><b>This is durable only in this browser—not secure organizational storage.</b><span>The draft now survives refresh on this device so the workflow can be tested. Roles are a preview, not identity verification. Do not enter protected information. A production release requires Purple Maiʻa-approved authentication, encrypted storage, server-enforced permissions, retention rules, backups, and an incident plan.</span></div>
+        <div className="control-grid">
+          <section><p className="label">Custody &amp; review</p><label>Record steward<input disabled={!canEdit} value={recordOwner} onChange={event=>setRecordOwner(event.target.value)} placeholder="Role or body; avoid personal data" /></label><label>Next mandatory review<input disabled={!canEdit} type="date" value={reviewDate} onChange={event=>setReviewDate(event.target.value)} /></label><button disabled={!canEdit} onClick={()=>{addLog("Review", `Review scheduled for ${reviewDate || "an unresolved date"}.`);}}>Record review schedule</button></section>
+          <section><p className="label">Authority decision</p><label>Status<select disabled={!canDecide} value={decisionStatus} onChange={event=>setDecisionStatus(event.target.value)}><option>Draft — no authority decision</option><option>Returned for revision</option><option>Approved with conditions</option><option>Declined</option><option>Withdrawn</option><option>Expired</option></select></label><label>Rationale / conditions<textarea disabled={!canDecide} rows={3} value={decisionNote} onChange={event=>setDecisionNote(event.target.value)} placeholder={canDecide?"Record a non-sensitive rationale and conditions.":"Switch to Authority reviewer to demonstrate this control."}/></label><button disabled={!canDecide || !decisionNote.trim()} onClick={recordDecision}>Sign demonstration decision</button><small>A production signature would bind a verified identity, authority scope, timestamp, record hash, expiry, and dissent—not merely a typed name.</small></section>
+          <section><p className="label">Version history</p><button disabled={!canEdit} onClick={saveSnapshot}>Preserve current version</button>{snapshots.length===0?<p>No preserved versions yet.</p>:snapshots.slice(0,3).map(snapshot=><div className="mini-record" key={snapshot.id}><b>{snapshot.label}</b><span>{new Date(snapshot.at).toLocaleString()} · {Object.values(snapshot.fields).filter(Boolean).length}/{recordFields.length} drafted</span><button onClick={()=>setRecordValues(snapshot.fields)}>Restore as working draft</button></div>)}</section>
+          <section><p className="label">Change / incident log</p><label>Non-sensitive log entry<textarea rows={3} value={logDraft} onChange={event=>setLogDraft(event.target.value)} placeholder="What changed, happened, or requires attention?" /></label><div className="log-buttons"><button onClick={()=>{addLog("Change",logDraft);setLogDraft("")}}>Add change</button><button onClick={()=>{addLog("Incident",logDraft);setLogDraft("")}}>Add incident</button></div>{logEntries.slice(0,4).map(entry=><div className="mini-record" key={entry.id}><b>{entry.kind} · {entry.actor}</b><span>{entry.summary}</span><small>{new Date(entry.at).toLocaleString()}</small></div>)}</section>
+        </div>
+      </div>
+      <div className="record-actions"><button className="primary" onClick={exportSystemRecord}>Download system record <span>↓</span></button><button onClick={()=>window.print()}>Print / save current view</button><button onClick={()=>{setRecordValues(initialSystemRecord);setRecordField("purpose")}}>Clear fields</button><button onClick={()=>{window.localStorage.removeItem("sovereign-stack-demo-record");setRecordValues(initialSystemRecord);setSnapshots([]);setLogEntries([]);setRecordOwner("");setReviewDate("");setDecisionStatus("Draft — no authority decision")}}>Erase browser draft</button></div>
       <div className="record-note"><b>Hard boundary:</b> completeness never requires protected content. A field may say “restricted,” “not recorded,” “authority not established,” or “decision deferred.” Those are legitimate governance states—not missing data to be filled by an outsider.</div>
     </section>}
 
