@@ -15,30 +15,30 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   metadataBase: new URL("https://sovereign-stack-psi.vercel.app"),
   alternates: { canonical: "/" },
-  title: "The Sovereign Stack | Governance & Learning Layer",
+  title: "Authority Layer | Governance for Purple Maiʻa's Sovereign Stack",
   description:
-    "A working concept for carrying community authority through every layer of an AI system—from purpose and data to models, use, review, and refusal.",
+    "An independent governance prototype testing how authority, boundaries, review, withdrawal, repair, and exit could travel through Purple Maiʻa's Sovereign Stack.",
   openGraph: {
-    title: "The Sovereign Stack",
+    title: "Authority Layer",
     description:
-      "A working proposal for a Purple Maiʻa-owned governance and learning layer carrying authority through every part of an AI system.",
+      "An independent governance prototype for Purple Maiʻa's Sovereign Stack.",
     url: "https://sovereign-stack-psi.vercel.app",
-    siteName: "The Sovereign Stack",
+    siteName: "Authority Layer",
     type: "website",
     images: [
       {
         url: "/opengraph-image",
         width: 1200,
         height: 630,
-        alt: "The Sovereign Stack — community authority carried through the AI stack",
+        alt: "Authority Layer — carrying authority through the Sovereign Stack",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "The Sovereign Stack",
+    title: "Authority Layer",
     description:
-      "A working proposal for a Purple Maiʻa-owned governance and learning layer carrying authority through every part of an AI system.",
+      "An independent governance prototype for Purple Maiʻa's Sovereign Stack.",
     images: ["/opengraph-image"],
   },
   authors: [{ name: "Rayven-Nikkita (RN) Collins" }],
