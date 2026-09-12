@@ -1,7 +1,7 @@
 import { ImageResponse } from "next/og";
 
 export const alt =
-  "The Sovereign Stack — community authority carried through the AI stack";
+  "Authority Layer — carrying authority through the Sovereign Stack";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
@@ -71,13 +71,13 @@ export default function OpenGraphImage() {
                 color: "#8a3f2a",
               }}
             >
-              Governance &amp; learning layer
+              Independent governance prototype
             </div>
           </div>
 
           <div style={{ display: "flex", flexDirection: "column", gap: 22 }}>
             <div style={{ display: "flex", fontSize: 82, lineHeight: 0.94 }}>
-              The Sovereign Stack
+              Authority Layer
             </div>
             <div
               style={{
@@ -89,8 +89,8 @@ export default function OpenGraphImage() {
                 color: "#4d625a",
               }}
             >
-              Carry community authority through purpose, data, models, use,
-              review—and refusal.
+              Carry authority through purpose, standing, permissions, review,
+              withdrawal, repair—and exit.
             </div>
           </div>
 
@@ -104,7 +104,7 @@ export default function OpenGraphImage() {
               color: "#6d7873",
             }}
           >
-            <div style={{ display: "flex" }}>A working concept for Purple Maiʻa</div>
+            <div style={{ display: "flex" }}>For Purple Maiʻa&apos;s Sovereign Stack</div>
             <div style={{ display: "flex", color: "#8a3f2a" }}>
               Built by RN Collins
             </div>
