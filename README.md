@@ -1,14 +1,14 @@
-# The Sovereign Stack
+# Authority Layer
 
-An independent, unsolicited analysis by RN Collins: a sketch of a community-authority governance and learning layer for AI systems, worked out against Purple Maiʻa's publicly available material.
+An independent governance prototype by RN Collins for pressure-testing how authority could remain operational across Purple Maiʻa's publicly described Sovereign Stack.
 
 **Live:** https://sovereign-stack-psi.vercel.app
 
 ## Status and relationship
 
-This work was **not** requested, commissioned, reviewed, endorsed, or seen by Purple Maiʻa. There is no relationship, engagement, contract, or contact of any kind between RN Collins and Purple Maiʻa. Nothing here is Purple Maiʻa policy, community consent, an approved protocol, or a finding about how Purple Maiʻa actually operates.
+RN has previously been in contact with Purple Maiʻa. This prototype was not commissioned, adopted, endorsed, or organizationally validated by Purple Maiʻa. Nothing here is Purple Maiʻa policy, community consent, an approved protocol, or a finding about how Purple Maiʻa actually operates.
 
-Every factual assertion about Purple Maiʻa in the build is drawn from its own published pages and is tagged in the Evidence room as **Verified public context**, and is kept separate from **RN interpretation**, **Proposed design**, and **Unresolved**. Where the analysis speculates, it is labelled as speculation.
+Every factual assertion about Purple Maiʻa is separated in the Assumption ledger as **Public record**, **RN synthesis**, **Hypothesis**, **Proposed design**, or **Unresolved**. Public evidence supplies context, not permission or proof of an internal gap.
 
 ## What the prototype demonstrates
 
