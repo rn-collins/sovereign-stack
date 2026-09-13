@@ -7,11 +7,11 @@ export const metadata: Metadata = {
   alternates: { canonical: "/" },
   title: "Authority Layer | Independent Governance Prototype",
   description:
-    "An independent prototype exploring how authority decisions could remain attached to uses across Purple Maiʻa's publicly described Sovereign Stack.",
+    "A working proposal showing how one specific use could remain bound to its authority decision as technology, people, purpose, and conditions change.",
   openGraph: {
     title: "Authority Layer",
     description:
-      "An independent prototype exploring authority alongside Purple Maiʻa's publicly described Sovereign Stack.",
+      "A working proposal for binding one specific use to its authority decision across change, challenge, withdrawal, and exit.",
     url: "https://sovereign-stack-psi.vercel.app",
     siteName: "Authority Layer",
     type: "website",
@@ -28,7 +28,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Authority Layer",
     description:
-      "An independent prototype exploring authority alongside Purple Maiʻa's publicly described Sovereign Stack.",
+      "A working proposal for binding one specific use to its authority decision across change, challenge, withdrawal, and exit.",
     images: ["/opengraph-image"],
   },
   authors: [{ name: "Rayven-Nikkita (RN) Collins" }],

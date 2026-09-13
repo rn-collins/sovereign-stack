@@ -1,6 +1,6 @@
 # Authority Layer
 
-An independent governance prototype by RN Collins for pressure-testing how authority could remain operational across Purple Maiʻa's publicly described Sovereign Stack.
+An independent working proposal by RN Collins for pressure-testing whether a specific use can remain bound to the authority decision that governs it as technology, people, purpose, and operating conditions change.
 
 **Live:** https://sovereign-stack-psi.vercel.app
 
@@ -12,7 +12,9 @@ Every factual assertion about Purple Maiʻa is separated in the Assumption Ledge
 
 ## What the prototype demonstrates
 
-A possible Decision Gate, living Authority Record, discovery path, pilot charter, and optional learning translation—built so that pause, refusal, withdrawal, and non-digitization remain valid outcomes. It is a non-production demonstration: it has no account, application database, form-submission endpoint, or configured analytics. Text entered into its workspaces is stored only in the visitor's browser; the hosting provider still processes ordinary request metadata.
+Version 1.2 adds a complete fictional lifecycle simulation, an explicit authorized-use object model, operational definitions, a detailed staged engagement proposal, typed fail-closed Decision Gate logic, role boundaries, change-event testing, and downloadable demonstration records. The existing living Authority Record, production-readiness workspace, co-design agenda, pilot charter, learning translation, and evidence ledger remain available as supporting tools.
+
+It is a non-production demonstration: it has no account, application database, form-submission endpoint, or configured analytics. Text entered into its editable workspaces is schema-checked and stored only in the visitor's browser; the hosting provider still processes ordinary request metadata. Pause, refusal, withdrawal, and non-digitization remain valid outcomes throughout.
 
 ## Local development
 
