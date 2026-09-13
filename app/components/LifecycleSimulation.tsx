@@ -10,28 +10,28 @@ const stages = [
     name: "Define the use",
     question: "What exact activity is being proposed—and for whose stated purpose?",
     record: "A staff-facing assistant drafts short responses from an enumerated set of already-published public webpages. A person reviews every draft before use.",
-    boundary: "The example does not represent KILO, a Purple Maiʻa project, or a real community decision.",
+    boundary: "This is a fictional test case with no connection to KILO, a Purple Maiʻa project, or a real community decision.",
     status: "Provisional description",
   },
   {
     name: "Locate standing",
     question: "Which roles or bodies may convene, advise, decide, challenge, or stop this use?",
     record: "An organizational sponsor may convene discovery. Technical staff may describe the system. The relevant authority reviewer remains unidentified in this fictional example.",
-    boundary: "The interface cannot create standing or infer it from employment, expertise, participation, ownership, or account access.",
+    boundary: "A valid process must identify standing; employment, expertise, participation, ownership, and account access cannot supply it by inference.",
     status: "Authority unresolved",
   },
   {
     name: "Set boundaries",
     question: "What may enter the use, and what must remain restricted, local, ephemeral, or undigitized?",
     record: "Permitted: specifically approved public webpages. Excluded: student, family, employee, or participant information; sensor data; unpublished material; protected knowledge; automated publication; profiling; training; and secondary reuse.",
-    boundary: "A classification label is only a proposal until the appropriate authority validates it.",
+    boundary: "The classification remains a proposal until the appropriate authority validates it.",
     status: "Draft boundary",
   },
   {
     name: "Record a decision",
     question: "What was decided, by whom, for which version, and under what conditions?",
     record: "Illustrative result: eligible for a time-limited, non-sensitive technical prototype after standing is confirmed. No protected information, autonomous decisions, publication, or reuse.",
-    boundary: "This simulated result is not approval. A real decision requires a valid process and a verified decision-maker acting within documented authority.",
+    boundary: "The simulation shows the required decision shape. Approval requires a valid process and a verified decision-maker acting within documented authority.",
     status: "Demonstration only",
   },
   {
@@ -45,7 +45,7 @@ const stages = [
     name: "Detect change",
     question: "Did the purpose, people, knowledge, data flow, model, vendor, or deployment change materially?",
     record: "Choose a change event below. The prototype compares the event with the scope and conditions of the illustrative decision.",
-    boundary: "Production change detection would require a Purple Maiʻa-approved definition of materiality and reliable technical evidence.",
+    boundary: "Production change detection depends on an authority-approved definition of materiality and reliable technical evidence.",
     status: "Awaiting event",
   },
   {
@@ -59,7 +59,7 @@ const stages = [
     name: "Exit or renew",
     question: "Does the use continue, change, migrate, withdraw, or retire—and what must happen to records and dependencies?",
     record: "The close records the authorized outcome, remaining obligations, export or deletion requirements, ownership and custody, and the next review date.",
-    boundary: "Completion of the walkthrough cannot authorize renewal, migration, deletion, or publication.",
+    boundary: "Renewal, migration, deletion, and publication each remain subject to the documented decision process.",
     status: "Decision required",
   },
 ] as const;
@@ -87,7 +87,7 @@ function downloadScenario(stageIndex: number, role: SimulationRole, eventId: Lif
   const payload = {
     artifactType: "authority-layer-lifecycle-simulation",
     schemaVersion: "1.0",
-    prototypeVersion: "1.2",
+    prototypeVersion: "1.2.1",
     generatedAt: new Date().toISOString(),
     status: "FICTIONAL, NON-AUTHORIZING DEMONSTRATION",
     scenario: "Public information drafting assistant",
@@ -96,7 +96,7 @@ function downloadScenario(stageIndex: number, role: SimulationRole, eventId: Lif
     roleBoundary: roles[role],
     lifecycle: stages,
     selectedChangeEvent: selectedEvent || "No event selected",
-    nonAuthorization: "This fictional export is not a Purple Maiʻa record, decision, policy, system description, or authorization. It contains no identity verification and must not be used for protected information.",
+    nonAuthorization: "Fictional interaction-simulation output; not a Purple Maiʻa record, decision, policy, system description, or authorization. Identity and authority are not verified. Use only with fictional, non-sensitive information.",
     canonicalUrl: "https://sovereign-stack-psi.vercel.app/",
   };
   const url = URL.createObjectURL(new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" }));
@@ -118,11 +118,11 @@ export default function LifecycleSimulation() {
     <div className="section-intro compact">
       <p className="overline">Guided lifecycle simulation · fictional and non-sensitive</p>
       <h2 id="simulation-title">Watch one authorized use move from proposal to exit.</h2>
-      <p>This walkthrough demonstrates the product’s connective tissue. It does not describe a Purple Maiʻa system or supply a real decision. Each stage shows what the record would need to preserve, what remains unresolved, and what the interface cannot decide.</p>
+      <p>This high-fidelity interaction simulation shows the intended lifecycle and doubles as an inspectable product requirement. It is not yet a connected authority system. Each stage shows the record to preserve, the open decision, and the boundary between interface behavior and human authority.</p>
     </div>
 
     <div className="scenario-banner">
-      <div><span>Fictional scenario</span><h3>Public information drafting assistant</h3><p>A staff-facing local tool drafts short responses from an enumerated set of already-published public webpages. A person reviews every draft before use. It cannot make decisions, ingest protected material, rank people, or publish automatically.</p></div>
+      <div><span>Fictional scenario</span><h3>Public information drafting assistant</h3><p>A staff-facing local tool drafts short responses from an enumerated set of already-published public webpages, with human review before every use. Its proposed scope excludes decision-making, protected material, ranking people, and automatic publication.</p></div>
       <div><span>Why this scenario</span><p>It is intentionally ordinary: concrete enough to test the authority mechanism without using KILO, environmental observations, student information, community knowledge, or any real Purple Maiʻa implementation.</p></div>
     </div>
 
@@ -134,13 +134,13 @@ export default function LifecycleSimulation() {
       <aside>
         <p className="overline">Stage {stageIndex + 1} of {stages.length}</p>
         <strong>{stage.status}</strong>
-        <span>The status describes this fictional record—not authority, approval, or production readiness.</span>
+        <span>The status reports this fictional step only. Authority, approval, and production readiness require separate evidence.</span>
       </aside>
       <article>
         <h3>{stage.name}</h3>
         <p className="simulation-question">{stage.question}</p>
         <div className="simulation-record"><span>Illustrative record</span><p>{stage.record}</p></div>
-        <div className="simulation-boundary"><span>What this cannot establish</span><p>{stage.boundary}</p></div>
+        <div className="simulation-boundary"><span>Decision boundary</span><p>{stage.boundary}</p></div>
       </article>
     </div>
 
@@ -153,7 +153,7 @@ export default function LifecycleSimulation() {
     </div>}
 
     <div className="role-lab">
-      <div><p className="overline">Role and permission preview</p><h3>Access is not authority.</h3><p>Select a role to see the narrow action boundary this prototype would need to enforce.</p></div>
+      <div><p className="overline">Role and permission preview</p><h3>Access and authority remain distinct.</h3><p>Select a role to inspect the permissions and limits a connected product would need to enforce.</p></div>
       <label><span>View as</span><select value={role} onChange={event => setRole(event.target.value as SimulationRole)}>{Object.keys(roles).map(item => <option key={item}>{item}</option>)}</select></label>
       <article><span>This role may</span><p>{roles[role].may}</p></article>
       <article><span>This role may not</span><p>{roles[role].mayNot}</p></article>

@@ -12,7 +12,9 @@ Every factual assertion about Purple Maiʻa is separated in the Assumption Ledge
 
 ## What the prototype demonstrates
 
-Version 1.2 adds a complete fictional lifecycle simulation, an explicit authorized-use object model, operational definitions, a detailed staged engagement proposal, typed fail-closed Decision Gate logic, role boundaries, change-event testing, and downloadable demonstration records. The existing living Authority Record, production-readiness workspace, co-design agenda, pilot charter, learning translation, and evidence ledger remain available as supporting tools.
+Version 1.2.1 presents the work precisely as an executive proposal, an inspectable product-requirements model, and a high-fidelity interaction simulation. It adds bookmarkable proposal, demonstration, system, engagement, evidence, and tool routes; a 60–90 second executive path; a direct copy-and-reply response path; evidence access dates; tighter affirmative copy; a Content Security Policy; and automated route, accessibility, evidence-link, and Decision Gate checks.
+
+The site illustrates a connected authority system; it does not yet implement one. The current Decision Gate, Authority Record, lifecycle simulation, production-readiness workspace, co-design agenda, pilot charter, learning translation, and Assumption Ledger remain browser-local tools rather than a shared, identity-verified authority graph.
 
 It is a non-production demonstration: it has no account, application database, form-submission endpoint, or configured analytics. Text entered into its editable workspaces is schema-checked and stored only in the visitor's browser; the hosting provider still processes ordinary request metadata. Pause, refusal, withdrawal, and non-digitization remain valid outcomes throughout.
 
@@ -23,7 +25,13 @@ npm install
 npm run dev
 ```
 
-The repository is configured for automatic Vercel builds through `vercel.json`.
+Before release:
+
+```bash
+npm run check
+```
+
+The repository is configured for automatic Vercel builds through `vercel.json`; GitHub Actions runs the same static checks, Chromium smoke tests, and production build on pushes to `main` and pull requests.
 
 ## License
 

@@ -5,8 +5,8 @@ import Definitions from "./components/Definitions";
 import EngagementProposal from "./components/EngagementProposal";
 import LifecycleSimulation from "./components/LifecycleSimulation";
 import ProductAnatomy from "./components/ProductAnatomy";
+import { type View, VIEW_PATHS, viewFromPathname } from "./route-config";
 
-type View = "meeting" | "overview" | "simulation" | "proposal" | "gate" | "record" | "pilot" | "learning" | "readiness" | "definitions" | "session" | "charter" | "review" | "evidence";
 type EvidenceType = "All" | "Public record" | "RN synthesis" | "Hypothesis" | "Proposed design" | "Unresolved";
 type RecordKey = "purpose" | "authority" | "knowledge" | "dataFlow" | "dependencies" | "allowed" | "prohibited" | "conditions" | "review" | "challenge" | "incident" | "withdrawal" | "migration" | "retirement";
 type Role = "Steward" | "Authority reviewer" | "Technical contributor" | "Observer";
@@ -35,7 +35,7 @@ const nav: { id: View; label: string; eyebrow: string }[] = [
   { id: "session", label: "Co-design session", eyebrow: "10" },
   { id: "charter", label: "Pilot charter", eyebrow: "11" },
   { id: "learning", label: "Learning translation", eyebrow: "12" },
-  { id: "meeting", label: "Legacy short walkthrough", eyebrow: "13" },
+  { id: "meeting", label: "Seven-minute briefing", eyebrow: "13" },
 ];
 
 const primaryNav = nav.filter(item => ["review", "simulation", "proposal", "pilot", "evidence"].includes(item.id));
@@ -56,13 +56,13 @@ const meetingSlides = [
   { label: "Decision", title: "Does the Sovereign Stack need an authority layer—or would this duplicate work already in place?", body: "The immediate request is a pressure test, not adoption: identify whether the problem is real, already solved, framed at the wrong layer, or worth a bounded discovery conversation.", proof: "Valid answers include useful, revise, refer, redundant, not now, and stop. None authorizes implementation or access to protected information." },
 ] as const;
 
-const evidenceItems: { type: Exclude<EvidenceType, "All">; claim: string; basis: string; boundary: string; source?: { label: string; url: string } }[] = [
-  { type: "Public record", claim: "ʻĀina Foundry publicly presented “The Sovereign Stack” during Hawaiʻi Tech Week on 2 September 2026.", basis: "The published event description identifies open models, local compute, AI coding agents, and a path toward solar-powered edge hardware.", boundary: "An event description establishes public positioning, not the complete architecture, deployment state, governance process, or endorsement of this prototype.", source: { label: "ʻĀina Foundry · The Sovereign Stack", url: "https://luma.com/88dnl4w1" } },
-  { type: "Public record", claim: "ʻĀina Foundry identifies Indigenous Data Sovereignty and Sovereignty-First Technology Development among its current focus areas.", basis: "Purple Maiʻa's current ʻĀina Foundry program page.", boundary: "Public focus areas do not establish which operational controls, records, or internal practices already exist.", source: { label: "Purple Maiʻa · ʻĀina Foundry", url: "https://www.purplemaia.org/ainafoundry" } },
-  { type: "Public record", claim: "Purple Maiʻa publicly documents active prototyping with local models, routing, agents, local document search, and edge hardware.", basis: "The ʻĀina Foundry public prototype log.", boundary: "Prototype logs are selected public accounts; they do not disclose protected work or establish production readiness.", source: { label: "ʻĀina Foundry · Prototype log", url: "https://blog.labs.purplemaia.org/" } },
-  { type: "Public record", claim: "Purple Maiʻa describes locally controlled AI infrastructure and unresolved choices about routing, commercial dependencies, data sovereignty, and Hawaiian epistemology.", basis: "Purple Maiʻa's published 2026 AI update.", boundary: "The public description does not establish every present component, policy, authority relationship, or technical dependency.", source: { label: "Purple Maiʻa · 2026 update on AI", url: "https://www.purplemaia.org/purple-blog/eahou-fest-2026-update-on-ai" } },
-  { type: "Public record", claim: "KILO connects environmental observation with kānāwai-guided interpretation, community control, and stewardship.", basis: "Purple Maiʻa's public article on Data Guided by Kānāwai.", boundary: "This prototype claims no access to KILO's internal governance, data, architecture, or participating communities' decisions.", source: { label: "Purple Maiʻa · Data Guided by Kānāwai", url: "https://www.purplemaia.org/purple-blog/data-guided-by-k%C4%81n%C4%81wai" } },
-  { type: "Public record", claim: "Purple Maiʻa leaders and collaborators have publicly argued that island AI infrastructure requires community participation in how it is built and governed.", basis: "A May 2026 Civil Beat commentary by Kelsey Amos, Keoni DeFranco, Keolu Fox, and Josiah Hester.", boundary: "The commentary establishes a public governance position, not a complete operational record or agreement with RN's proposed mechanism.", source: { label: "Civil Beat · AI data centers and community governance", url: "https://www.civilbeat.org/2026/05/ai-data-centers-are-the-new-plantations-unless-we-build-them-differently/" } },
+const evidenceItems: { type: Exclude<EvidenceType, "All">; claim: string; basis: string; boundary: string; source?: { label: string; url: string; accessed: string } }[] = [
+  { type: "Public record", claim: "ʻĀina Foundry publicly presented “The Sovereign Stack” during Hawaiʻi Tech Week on 2 September 2026.", basis: "The published event description identifies open models, local compute, AI coding agents, and a path toward solar-powered edge hardware.", boundary: "An event description establishes public positioning, not the complete architecture, deployment state, governance process, or endorsement of this prototype.", source: { label: "ʻĀina Foundry · The Sovereign Stack", url: "https://luma.com/88dnl4w1", accessed: "Accessed 13 September 2026" } },
+  { type: "Public record", claim: "ʻĀina Foundry identifies Indigenous Data Sovereignty and Sovereignty-First Technology Development among its current focus areas.", basis: "Purple Maiʻa's current ʻĀina Foundry program page.", boundary: "Public focus areas do not establish which operational controls, records, or internal practices already exist.", source: { label: "Purple Maiʻa · ʻĀina Foundry", url: "https://www.purplemaia.org/ainafoundry", accessed: "Accessed 13 September 2026" } },
+  { type: "Public record", claim: "Purple Maiʻa publicly documents active prototyping with local models, routing, agents, local document search, and edge hardware.", basis: "The ʻĀina Foundry public prototype log.", boundary: "Prototype logs are selected public accounts; they do not disclose protected work or establish production readiness.", source: { label: "ʻĀina Foundry · Prototype log", url: "https://blog.labs.purplemaia.org/", accessed: "Accessed 13 September 2026" } },
+  { type: "Public record", claim: "Purple Maiʻa describes locally controlled AI infrastructure and unresolved choices about routing, commercial dependencies, data sovereignty, and Hawaiian epistemology.", basis: "Purple Maiʻa's published 2026 AI update.", boundary: "The public description does not establish every present component, policy, authority relationship, or technical dependency.", source: { label: "Purple Maiʻa · 2026 update on AI", url: "https://www.purplemaia.org/purple-blog/eahou-fest-2026-update-on-ai", accessed: "Accessed 13 September 2026" } },
+  { type: "Public record", claim: "KILO connects environmental observation with kānāwai-guided interpretation, community control, and stewardship.", basis: "Purple Maiʻa's public article on Data Guided by Kānāwai.", boundary: "This prototype claims no access to KILO's internal governance, data, architecture, or participating communities' decisions.", source: { label: "Purple Maiʻa · Data Guided by Kānāwai", url: "https://www.purplemaia.org/purple-blog/data-guided-by-k%C4%81n%C4%81wai", accessed: "Accessed 13 September 2026" } },
+  { type: "Public record", claim: "Purple Maiʻa leaders and collaborators have publicly argued that island AI infrastructure requires community participation in how it is built and governed.", basis: "A May 2026 Civil Beat commentary by Kelsey Amos, Keoni DeFranco, Keolu Fox, and Josiah Hester.", boundary: "The commentary establishes a public governance position, not a complete operational record or agreement with RN's proposed mechanism.", source: { label: "Civil Beat · AI data centers and community governance", url: "https://www.civilbeat.org/2026/05/ai-data-centers-are-the-new-plantations-unless-we-build-them-differently/", accessed: "Accessed 13 September 2026" } },
   { type: "RN synthesis", claim: "The relevant seam may be the operational layer between sovereignty-first infrastructure and durable, reviewable authority decisions.", basis: "RN's synthesis of Purple Maiʻa's public technical, environmental, educational, and governance work.", boundary: "This synthesis does not establish a gap in Purple Maiʻa's current practice." },
   { type: "Hypothesis", claim: "A reusable authority record could reduce loss of purpose, conditions, dissent, and stopping power as systems, vendors, models, and personnel change.", basis: "A lifecycle-risk hypothesis made testable by this prototype.", boundary: "Only discovery with Purple Maiʻa and relevant authorities could show whether the risk exists, is already managed, or matters enough to address." },
   { type: "Hypothesis", claim: "One bounded, non-sensitive use could make the hypothesis concrete enough to accept, revise, or reject.", basis: "A narrow scenario can expose decision dependencies without requiring protected knowledge or a production build.", boundary: "No project—including KILO—is presumed to be the test case. Purple Maiʻa may identify another use or no useful pilot." },
@@ -189,7 +189,7 @@ function artifactEnvelope(artifactType: string, status: string) {
   return {
     artifactType,
     artifactSchemaVersion: "1.0",
-    prototypeVersion: "1.2",
+    prototypeVersion: "1.2.1",
     generatedAt: new Date().toISOString(),
     canonicalUrl: "https://sovereign-stack-psi.vercel.app/",
     status,
@@ -199,8 +199,8 @@ function artifactEnvelope(artifactType: string, status: string) {
   };
 }
 
-export default function Home() {
-  const [view, setView] = useState<View>("review");
+export function AuthorityLayerApp({ initialView = "review" }: { initialView?: View }) {
+  const [view, setView] = useState<View>(initialView);
   const [meetingStep, setMeetingStep] = useState(0);
   const [step, setStep] = useState(0);
   const [answers, setAnswers] = useState<string[]>([]);
@@ -231,6 +231,7 @@ export default function Home() {
   const [evidenceFilter, setEvidenceFilter] = useState<EvidenceType>("All");
   const [privacyOpen, setPrivacyOpen] = useState(false);
   const [eraseConfirmed, setEraseConfirmed] = useState(false);
+  const [responseCopied, setResponseCopied] = useState(false);
   const resultRef = useRef<HTMLDivElement>(null);
   const privacyRef = useRef<HTMLElement>(null);
   const privacyOpenerRef = useRef<HTMLElement | null>(null);
@@ -291,6 +292,15 @@ export default function Home() {
     return () => { document.body.style.overflow = previousOverflow; backgroundElements.forEach(element => element.removeAttribute("inert")); document.removeEventListener("keydown", onKeyDown); };
   }, [privacyOpen]);
 
+  useEffect(() => {
+    const onPopState = () => {
+      const restoredView = viewFromPathname(window.location.pathname);
+      if (restoredView) setView(restoredView);
+    };
+    window.addEventListener("popstate", onPopState);
+    return () => window.removeEventListener("popstate", onPopState);
+  }, []);
+
   const canEdit = activeRole === "Steward" || activeRole === "Technical contributor";
   const canDecide = activeRole === "Authority reviewer";
   function addLog(kind: LogEntry["kind"], summary: string) {
@@ -330,20 +340,36 @@ export default function Home() {
   }
   function selectView(id: View) {
     setView(id);
+    const nextPath = VIEW_PATHS[id];
+    if (window.location.pathname !== nextPath) window.history.pushState({ authorityLayerView: id }, "", nextPath);
     window.setTimeout(() => {
       const destination = document.getElementById(`${id}-content`);
       destination?.scrollIntoView({ behavior: "smooth", block: "start" });
       destination?.focus({ preventScroll: true });
     }, 0);
   }
-  function returnToBeginning() { setView("review"); window.scrollTo({ top: 0, behavior: "smooth" }); }
+  function returnToBeginning() {
+    setView("review");
+    if (window.location.pathname !== VIEW_PATHS.review) window.history.pushState({ authorityLayerView: "review" }, "", VIEW_PATHS.review);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+  async function copyResponsePrompt() {
+    const prompt = "My reaction to Authority Layer: [relevant constraint / already addressed / revise / not useful now / refer]. The person or role best placed to assess it is: [role or team]. The most important correction or boundary is: [note].";
+    try {
+      await navigator.clipboard.writeText(prompt);
+      setResponseCopied(true);
+      window.setTimeout(() => setResponseCopied(false), 3000);
+    } catch {
+      setResponseCopied(false);
+    }
+  }
   function clearGate() { setAnswers([]); setNotes([]); setStep(0); setGateProjectName(""); setProjectPurpose(""); }
   function downloadText(filename: string, content: string) {
     const url = URL.createObjectURL(new Blob([content], { type: "text/markdown;charset=utf-8" }));
     const link = document.createElement("a"); link.href = url; link.download = filename; link.click(); URL.revokeObjectURL(url);
   }
   function exportMeetingBrief() {
-    downloadText("authority-layer-executive-brief.md", `# Authority Layer\n\n**Independent prototype by Rayven-Nikkita (RN) Collins**  \n**Version 1.2 · 13 September 2026**\n\nPurple Maiʻa has publicly described a technical Sovereign Stack in terms of local compute, open models, AI coding agents, edge systems, and sovereignty-first technology development.\n\nAuthority Layer explores a narrower operational question:\n\n**How could the decision governing one specific use remain attached as its models, data flows, vendors, people, purposes, and operating conditions change?**\n\nThe prototype demonstrates:\n\n- a complete fictional lifecycle simulation;\n- a pre-build Decision Gate;\n- a living Authority Record;\n- implementation binding and material-change review;\n- versioned permissions, conditions, dissent, and review;\n- challenge, incident, withdrawal, migration, and retirement paths; and\n- a staged engagement process that can stop before implementation.\n\nRN is not claiming that Purple Maiʻa lacks governance practices or proposing to define Hawaiian values, community authority, or kānāwai. Public information cannot establish whether the proposed layer is useful, redundant, or misframed.\n\n## Immediate request\n\nA 20–25-minute pressure test—not approval or adoption. Useful determinations include:\n\n1. a real operational constraint exists;\n2. Purple Maiʻa already addresses it;\n3. the concept should be revised or referred; or\n4. the proposed layer is not useful.\n\nOnly if Purple Maiʻa identifies a genuine gap would RN propose a separately scoped, compensated discovery engagement using one fictional or approved non-sensitive scenario.\n\n## Boundaries\n\n- Purple Maiʻa and relevant community and cultural authorities define substance and decision-making roles.\n- Protected knowledge does not belong in this public browser demonstration.\n- Public excerpts require separate review and approval.\n- Interest, attendance, form completion, or download does not create authority or consent.\n- Revision, referral, redundancy, deferral, and stopping are useful findings.\n\n## Primary public sources\n\n- ʻĀina Foundry, “The Sovereign Stack” event description: https://luma.com/88dnl4w1\n- Purple Maiʻa, ʻĀina Foundry: https://www.purplemaia.org/ainafoundry\n- ʻĀina Foundry prototype log: https://blog.labs.purplemaia.org/\n\n**Prepared by Rayven-Nikkita (RN) Collins**  \nGovernance and legal-technical implementation  \nhttps://sovereign-stack-psi.vercel.app/\n\nRN previously corresponded with Purple Maiʻa about the earlier proposal. Purple Maiʻa has not commissioned, adopted, endorsed, or validated this prototype.\n`);
+    downloadText("authority-layer-executive-brief.md", `# Authority Layer\n\n**Independent prototype by Rayven-Nikkita (RN) Collins**  \n**Version 1.2.1 · 13 September 2026**\n\nPurple Maiʻa has publicly described a technical Sovereign Stack in terms of local compute, open models, AI coding agents, edge systems, and sovereignty-first technology development.\n\nAuthority Layer explores a narrower operational question:\n\n**How could the decision governing one specific use remain attached as its models, data flows, vendors, people, purposes, and operating conditions change?**\n\nThe prototype demonstrates:\n\n- a complete fictional lifecycle simulation;\n- a pre-build Decision Gate;\n- a living Authority Record;\n- implementation binding and material-change review;\n- versioned permissions, conditions, dissent, and review;\n- challenge, incident, withdrawal, migration, and retirement paths; and\n- a staged engagement process that can stop before implementation.\n\nRN is not claiming that Purple Maiʻa lacks governance practices or proposing to define Hawaiian values, community authority, or kānāwai. Public information cannot establish whether the proposed layer is useful, redundant, or misframed.\n\n## Immediate request\n\nA 20–25-minute pressure test—not approval or adoption. Useful determinations include:\n\n1. a real operational constraint exists;\n2. Purple Maiʻa already addresses it;\n3. the concept should be revised or referred; or\n4. the proposed layer is not useful.\n\nOnly if Purple Maiʻa identifies a genuine gap would RN propose a separately scoped, compensated discovery engagement using one fictional or approved non-sensitive scenario.\n\n## Boundaries\n\n- Purple Maiʻa and relevant community and cultural authorities define substance and decision-making roles.\n- Protected knowledge does not belong in this public browser demonstration.\n- Public excerpts require separate review and approval.\n- Interest, attendance, form completion, or download does not create authority or consent.\n- Revision, referral, redundancy, deferral, and stopping are useful findings.\n\n## Primary public sources\n\n- ʻĀina Foundry, “The Sovereign Stack” event description: https://luma.com/88dnl4w1\n- Purple Maiʻa, ʻĀina Foundry: https://www.purplemaia.org/ainafoundry\n- ʻĀina Foundry prototype log: https://blog.labs.purplemaia.org/\n\n**Prepared by Rayven-Nikkita (RN) Collins**  \nGovernance and legal-technical implementation  \nhttps://sovereign-stack-psi.vercel.app/\n\nRN previously corresponded with Purple Maiʻa about the earlier proposal. Purple Maiʻa has not commissioned, adopted, endorsed, or validated this prototype.\n`);
   }
   function eraseAllDrafts() {
     skipNextSaveRef.current = true;
@@ -494,24 +520,25 @@ export default function Home() {
 
   return <main>
     <a className="skip-link" href="#section-navigation">Skip to section navigation</a>
-    <div className="print-meta"><b>Authority Layer · Independent prototype by Rayven-Nikkita (RN) Collins</b><span>Version 1.2 · https://sovereign-stack-psi.vercel.app/</span><span>Not commissioned, adopted, endorsed, or validated by Purple Maiʻa. Nothing printed from this demonstration creates authority or authorization.</span></div>
+    <div className="print-meta"><b>Authority Layer · Independent prototype by Rayven-Nikkita (RN) Collins</b><span>Version 1.2.1 · https://sovereign-stack-psi.vercel.app/</span><span>Not commissioned, adopted, endorsed, or validated by Purple Maiʻa. Nothing printed from this demonstration creates authority or authorization.</span></div>
     <header className="topbar">
       <button className="wordmark" onClick={returnToBeginning} aria-label="Return to beginning"><span className="knot" aria-hidden="true">◈</span><span>Authority Layer</span></button>
-      <button className="ownership status-control" onClick={openPrivacy} aria-expanded={privacyOpen} aria-controls="status-privacy-panel"><span />Independent prototype · status &amp; privacy</button>
+      <button className="ownership status-control" onClick={openPrivacy} aria-expanded={privacyOpen}><span />Independent prototype · status &amp; privacy</button>
     </header>
 
     {privacyOpen && <aside id="status-privacy-panel" ref={privacyRef} className="privacy-panel" role="dialog" aria-modal="true" aria-labelledby="privacy-title">
       <button autoFocus className="privacy-close" onClick={closePrivacy} aria-label="Close status and privacy panel">×</button>
       <p className="overline">Status, privacy &amp; local drafts</p><h2 id="privacy-title">Know what this prototype does—and does not do.</h2>
       <div className="privacy-grid"><article><b>Authorship and status</b><p>Independent prototype by Rayven-Nikkita Collins, developed from the publicly available sources listed in the Assumption Ledger. RN previously corresponded with Purple Maiʻa about the earlier proposal. This prototype was not commissioned, adopted, endorsed, or validated by Purple Maiʻa. It is not a Purple Maiʻa product, policy, approved protocol, or community-authorized framework.</p></article><article><b>What this browser stores</b><p>Draft authority-record, production-readiness, session, and charter entries are saved only in this browser&apos;s local storage so they can survive refresh.</p></article><article><b>What is transmitted</b><p>This application has no account, database, form-submission endpoint, or configured analytics. The hosting provider necessarily processes ordinary request metadata, but text entered into these workspaces is not submitted to RN or an application database.</p></article><article><b>What must never be entered</b><p>Do not enter protected cultural knowledge, personal data, credentials, confidential organizational information, authority decisions, or anything requiring secure retention.</p></article></div>
-      <div className="privacy-actions"><div><b>Version 1.2 · updated 13 September 2026</b><span>Public demonstration · browser-local drafting only</span></div><button onClick={eraseAllDrafts}>Erase all browser drafts</button></div>
+      <div className="privacy-actions"><div><b>Version 1.2.1 · updated 13 September 2026</b><span>Public demonstration · browser-local drafting only</span></div><button onClick={eraseAllDrafts}>Erase all browser drafts</button></div>
       {eraseConfirmed&&<p className="erase-confirm" role="status">All Authority Layer drafts stored by this site in this browser have been erased.</p>}
     </aside>}
 
     <section className="hero">
       <div className="hero-copy">
-        <p className="overline">Independent proposal + working prototype</p>
+        <p className="overline">Independent proposal + high-fidelity product simulation</p>
         <h1>Infrastructure can be local.<br/><em>Authority must travel through it.</em></h1>
+        <p className="authority-definition"><strong>Authority Layer prevents a use from quietly outgrowing the decision that authorized it.</strong></p>
         <p className="lede">Purple Maiʻa has publicly described the technical Sovereign Stack. <strong>Authority Layer</strong> is RN Collins’s independent prototype for testing a narrower operational question: how could the decision governing one specific use remain attached as its models, data flows, vendors, people, purposes, and operating conditions change?</p>
         <p className="authority-definition">Here, authority means documented decision-making power held by identified roles or bodies for a specific use. It is not inferred from ownership, expertise, employment, participation, or account access.</p>
         <div className="hero-actions"><button className="primary light" onClick={() => selectView("simulation")}>Walk one fictional use <span>→</span></button><button className="text-link" onClick={() => selectView("review")}>Pressure-test the premise</button><button className="text-link" onClick={() => selectView("evidence")}>Inspect the evidence</button></div>
@@ -664,14 +691,23 @@ export default function Home() {
     </section>}
 
     {view === "review" && <section id="review-content" className="content executive-review" tabIndex={-1}>
-      <div className="section-intro compact"><p className="overline">Executive review · summary and response</p><h2>Is Authority Layer addressing a real operational constraint, duplicating work Purple Maiʻa already has, or aimed at the wrong layer?</h2><p>The immediate request is a 20–25-minute pressure test. Donavan can correct the premise, identify existing work, refer the question to someone closer to it, or say it is not useful. None of those responses approves the framework, authorizes a build, selects a pilot, or invites access to protected information.</p></div>
+      <div className="section-intro compact"><p className="overline">60–90 second executive read</p><h2>Authority Layer keeps a use inside the decision that authorized it—even as the technical system changes.</h2><p>Purple Maiʻa has publicly described the technical Sovereign Stack. RN independently built this high-fidelity interaction simulation and product requirements model to test whether purpose, standing, knowledge boundaries, conditions, dissent, review, withdrawal, and exit need a durable operational layer across that stack.</p></div>
+      <div className="executive-grid">
+        <article><span>Why now</span><h3>The technical work makes the lifecycle question concrete.</h3><p>Local models, infrastructure, agents, data flows, dependencies, people, and purposes can change after an initial decision.</p></article>
+        <article><span>What this does</span><h3>It binds one authorized use to its governing record.</h3><p>The demonstration connects pre-build review, scoped permission, material-change triggers, challenge, repair, migration, and retirement.</p></article>
+        <article><span>The decision requested</span><h3>Relevant, redundant, misframed, or not useful now?</h3><p>A short pressure test can correct the premise, identify existing work, refer the question, or determine that it should stop.</p></article>
+        <article><span>Fastest review path</span><h3>See the claim, then test one change event.</h3><p>Open the guided demonstration, inspect the evidence if needed, and reply in the existing email thread with one direction.</p></article>
+      </div>
+      <div className="meeting-links"><button className="primary" onClick={()=>selectView("simulation")}>Walk the fictional use →</button><button onClick={()=>selectView("meeting")}>Open the seven-minute briefing</button><button onClick={()=>selectView("evidence")}>Inspect the Assumption Ledger</button></div>
+      <div className="decision-box"><div><p className="overline">Direct response</p><h3>Reply in the existing email thread with one direction and, if appropriate, the role best placed to assess it.</h3></div><div><p>Relevant constraint · Already addressed · Revise · Not useful now · Refer</p><button className="primary" onClick={copyResponsePrompt}>{responseCopied ? "Response prompt copied" : "Copy a concise response prompt"}</button><span role="status" className="sr-only">{responseCopied ? "Response prompt copied to clipboard." : ""}</span></div></div>
+      <div className="section-intro compact"><p className="overline">Full decision context</p><h2>Is Authority Layer addressing a real operational constraint, duplicating work Purple Maiʻa already has, or aimed at the wrong layer?</h2><p>The immediate request is a 20–25-minute pressure test. Donavan can correct the premise, identify existing work, refer the question to someone closer to it, or say it is not useful. None of those responses approves the framework, authorizes a build, selects a pilot, or invites access to protected information.</p></div>
       <div className="executive-grid">
         <article><span>Public record</span><h3>Purple Maiʻa has publicly described a technical Sovereign Stack.</h3><p>Its public materials describe local infrastructure, open models, coding agents, edge systems, education, place-based practice, and sovereignty-first technology development.</p></article>
         <article><span>RN hypothesis</span><h3>The seam may be durable authority—not another sovereignty principle.</h3><p>Purpose, standing, knowledge boundaries, permissions, dissent, review, withdrawal, repair, migration, and retirement may need to remain operational as systems change.</p></article>
-        <article><span>What exists now</span><h3>A working demonstration, not an adopted system.</h3><p>The prototype makes the workflow tangible: Decision Gate, Authority Record, implementation questions, co-design agenda, and pilot charter. It is not designed or approved to store protected organizational data, and users are instructed not to enter any. Nothing entered here creates authority.</p></article>
+        <article><span>Current state</span><h3>Inspectable product requirements plus a high-fidelity interaction simulation.</h3><p>The site makes the intended workflow tangible: Decision Gate, Authority Record, implementation questions, co-design agenda, and pilot charter. These tools illustrate a connected authority system; they do not yet implement one.</p></article>
         <article><span>What remains unanswered</span><h3>Useful, redundant, or aimed at the wrong layer?</h3><p>Public material cannot settle that. A short pressure-test conversation could determine whether the premise is relevant, redundant, or misframed. Only if a real constraint is identified would RN propose a separately scoped, compensated discovery engagement.</p></article>
       </div>
-      <div className="executive-boundaries"><p className="overline">Non-negotiable boundaries</p><div><span>No claim to Indigenous authority</span><span>No presumption that KILO is the pilot</span><span>No protected data in this prototype</span><span>No publication without separate approval</span><span>No move to production without separate authorization</span><span>Stop is a successful outcome</span></div></div>
+      <div className="executive-boundaries"><p className="overline">Current scope</p><div><span>Public, fictional product simulation</span><span>Relevant authorities define any real use</span><span>Correction, referral, discovery, or stop are valid outcomes</span></div></div>
       <div className="review-room">
         <div className="review-room-head"><div><p className="overline">Reviewer response path · illustrative browser demonstration</p><h3>Record direction without accidentally granting permission.</h3></div><p>This form contains no prefilled response. Use only non-sensitive notes. Download creates a discussion brief, not an authorization record.</p></div>
         <fieldset className="response-options"><legend className="sr-only">Executive response</legend>{(["I see a relevant constraint", "Continue discovery", "Revise the concept", "Not useful now", "Not mine to decide"] as ReviewResponse[]).map(response=><label key={response} className={reviewResponse===response?"selected":""}><input type="radio" name="executive-response" checked={reviewResponse===response} onChange={()=>setReviewResponse(response)} /><span aria-hidden="true">{reviewResponse===response?"●":"○"}</span>{response}</label>)}</fieldset>
@@ -689,11 +725,15 @@ export default function Home() {
       <div className="section-intro compact"><p className="overline">Assumption Ledger · provenance before persuasion</p><h2>Let every claim carry its own status and boundary.</h2><p>The ledger separates public record, RN synthesis, hypotheses, proposed designs, and unresolved questions. It makes the argument auditable without converting public evidence into permission or organizational fact.</p></div>
       <div className="evidence-rule"><div><span>01</span><b>A public record is not permission.</b><p>A published description can ground context. It cannot authorize access, reuse, representation, or a pilot.</p></div><div><span>02</span><b>A proposal is not a finding.</b><p>RN&apos;s system designs are offered for correction and testing; their completeness does not prove organizational need.</p></div><div><span>03</span><b>Unresolved is a valid state.</b><p>The ledger keeps unresolved questions visible until the right people answer—or decide the question should not be recorded.</p></div></div>
       <div className="evidence-toolbar"><div role="group" aria-label="Filter assumption ledger">{(["All", "Public record", "RN synthesis", "Hypothesis", "Proposed design", "Unresolved"] as EvidenceType[]).map(type=><button key={type} className={evidenceFilter===type?"active":""} aria-pressed={evidenceFilter===type} onClick={()=>setEvidenceFilter(type)}>{type}<span>{type==="All"?evidenceItems.length:evidenceItems.filter(item=>item.type===type).length}</span></button>)}</div><button onClick={exportEvidenceRegister}>Download ledger ↓</button></div>
-      <div className="evidence-register">{evidenceItems.filter(item=>evidenceFilter==="All"||item.type===evidenceFilter).map((item,index)=><article key={`${item.type}-${item.claim}`}><div className="evidence-kind"><span>{String(index+1).padStart(2,"0")}</span><b>{item.type}</b></div><div className="evidence-claim"><h3>{item.claim}</h3><p><b>Basis</b>{item.basis}</p></div><div className="evidence-boundary"><p><b>Evidence boundary</b>{item.boundary}</p>{item.source&&<a href={item.source.url} target="_blank" rel="noopener noreferrer">{item.source.label} ↗</a>}</div></article>)}</div>
+      <div className="evidence-register">{evidenceItems.filter(item=>evidenceFilter==="All"||item.type===evidenceFilter).map((item,index)=><article key={`${item.type}-${item.claim}`}><div className="evidence-kind"><span>{String(index+1).padStart(2,"0")}</span><b>{item.type}</b></div><div className="evidence-claim"><h3>{item.claim}</h3><p><b>Basis</b>{item.basis}</p></div><div className="evidence-boundary"><p><b>Evidence boundary</b>{item.boundary}</p>{item.source&&<><a href={item.source.url} target="_blank" rel="noopener noreferrer">{item.source.label} ↗</a><small>{item.source.accessed}</small></>}</div></article>)}</div>
       <div className="evidence-close"><div><p className="overline">Discovery correction protocol</p><h3>Correct the record before expanding the work.</h3></div><ol><li>Identify the statement, missing context, or category error.</li><li>Mark whether it should be corrected, restricted, removed, or left unresolved.</li><li>Name who may validate the replacement and what evidence may be retained.</li><li>Propagate the correction through the proposal, prototype, charter, and any approved public excerpt.</li></ol></div>
       <div className="decision-box"><div><p className="overline">What this room asks</p><h3>Not “Did RN research enough?” but “Is the proposition accurately bounded enough to begin listening?”</h3></div><p>A successful review may produce a correction, a referral to someone with standing, a narrower question, a discovery invitation, or a decision to stop. Each is a useful result.</p></div>
     </section>}
 
-    <footer><div><span className="knot">◈</span><b>Authority Layer</b><small>Version 1.2 · 13 September 2026 · expanded lifecycle simulation, system design, definitions, and engagement proposal</small></div><p>Independent prototype by Rayven-Nikkita (RN) Collins, developed from the publicly available sources listed in the Assumption Ledger. RN previously corresponded with Purple Maiʻa about the earlier proposal. Purple Maiʻa has not commissioned, adopted, endorsed, or validated this prototype. Not a Purple Maiʻa product, policy, approved protocol, or community-authorized framework. <button onClick={openPrivacy} aria-controls="status-privacy-panel">Status, privacy &amp; erase drafts</button></p></footer>
+    <footer><div><span className="knot">◈</span><b>Authority Layer</b><small>Version 1.2.1 · 13 September 2026 · executive routing, response path, copy precision, evidence dating, security, and automated release checks</small></div><p>Independent prototype by Rayven-Nikkita (RN) Collins, developed from the publicly available sources listed in the Assumption Ledger. RN previously corresponded with Purple Maiʻa about the earlier proposal. Purple Maiʻa has not commissioned, adopted, endorsed, or validated this prototype. Not a Purple Maiʻa product, policy, approved protocol, or community-authorized framework. <button onClick={openPrivacy}>Status, privacy &amp; erase drafts</button></p></footer>
   </main>;
+}
+
+export default function Home() {
+  return <AuthorityLayerApp />;
 }

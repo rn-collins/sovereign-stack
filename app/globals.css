@@ -134,7 +134,7 @@ main:has(.privacy-panel)::before{content:"";position:fixed;z-index:999;inset:0;b
   a[href]::after{content:" (" attr(href) ")";font-size:8pt}
 }
 
-/* Authority Layer v1.2: connected lifecycle, system design, engagement and definitions */
+/* Authority Layer v1.2.1: connected lifecycle, system design, engagement and definitions */
 .simulation-view,.definitions-view{max-width:1240px}
 .scenario-banner{display:grid;grid-template-columns:1.5fr .75fr;background:var(--ink);color:#fff;border:1px solid var(--ink);margin:2.5rem 0 1rem}
 .scenario-banner>div{padding:2rem}.scenario-banner>div+div{border-left:1px solid rgba(255,255,255,.18);background:var(--forest)}
@@ -175,3 +175,6 @@ fieldset.options{border:0;padding:0}
 .event-options input{position:absolute;opacity:0;pointer-events:none}
 .event-options label:focus-within{outline:3px solid var(--rust);outline-offset:-3px}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.orbit{animation:none!important}*,*:before,*:after{transition-duration:.01ms!important;animation-duration:.01ms!important;animation-iteration-count:1!important}}
+
+/* V1.2.1 evidence provenance */
+.evidence-boundary a{display:block}.evidence-boundary small{display:block;margin-top:.35rem;font-size:9px;letter-spacing:.05em;color:#737d77}

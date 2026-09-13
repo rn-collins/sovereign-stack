@@ -1,6 +1,6 @@
 {
   "name": "sovereign-stack",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "private": true,
   "engines": {
     "node": "22.x"
@@ -9,7 +9,12 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint . --max-warnings=0"
+    "lint": "eslint . --max-warnings=0",
+    "typecheck": "tsc --noEmit",
+    "test": "playwright test",
+    "test:smoke": "playwright test --project=chromium",
+    "check:static": "npm run lint && npm run typecheck",
+    "check": "npm run check:static && npm run test:smoke && npm run build"
   },
   "dependencies": {
     "next": "16.3.5",
@@ -17,12 +22,15 @@
     "react-dom": "19.2.6"
   },
   "devDependencies": {
+    "@axe-core/playwright": "4.10.2",
+    "@playwright/test": "1.55.0",
     "@tailwindcss/postcss": "4.2.1",
     "@types/node": "22.19.19",
     "@types/react": "19.2.14",
     "@types/react-dom": "19.2.3",
     "eslint": "9.39.4",
     "eslint-config-next": "16.3.5",
+    "playwright-core": "1.55.0",
     "tailwindcss": "4.2.1",
     "typescript": "5.9.3"
   },

@@ -4,7 +4,7 @@ const phases = [
     timing: "20–25 minutes",
     purpose: "Determine whether the proposed problem is relevant, redundant, misframed, or better directed to another role or body.",
     work: ["Correct the public-evidence interpretation", "Identify existing work that must not be duplicated", "Name who is closer to the question", "Choose stop, revise, refer, or consider discovery"],
-    result: "A direction—not approval, a pilot invitation, data access, or a commitment to pay.",
+    result: "A documented direction: relevant, redundant, misframed, refer, or stop.",
   },
   {
     phase: "Bounded discovery",
@@ -25,7 +25,7 @@ const phases = [
     timing: "Only through a separate charter",
     purpose: "Test the approved mechanism on one authorized use with named participants, controls, review points, and closeout obligations.",
     work: ["Implement only the chartered scope", "Train designated users and reviewers", "Test access, change, challenge, incident, and exit paths", "Measure operational burden and decision quality", "Transfer, delete, maintain, migrate, or retire as authorized"],
-    result: "Evidence for adoption, revision, another intervention, or retirement—not automatic expansion or production approval.",
+    result: "Evidence supporting adoption, revision, another intervention, or retirement, followed by a separate production decision.",
   },
 ] as const;
 
@@ -34,16 +34,16 @@ export default function EngagementProposal() {
     <div className="section-intro compact">
       <p className="overline">Engagement proposal · decisions before scope expansion</p>
       <h2 id="engagement-title">Begin with one short pressure test. Earn every later phase.</h2>
-      <p>The proposal is deliberately staged so a useful answer can be “this already exists,” “the problem is elsewhere,” “another person should decide,” or “stop.” No phase silently authorizes the next.</p>
+      <p>Each phase produces a decision-quality output and ends at its own gate. Useful outcomes include confirming relevance, locating existing work, reframing the problem, referring it to the right reviewer, or stopping.</p>
     </div>
 
-    <div className="engagement-ask"><div><span>Immediate request</span><h3>A 20–25-minute conversation with Donavan—or a referral to the appropriate reviewer.</h3></div><p>Pressure-test whether durable authority is a real operational seam around Purple Maiʻa’s publicly described Sovereign Stack. The conversation is not a request to approve this framework, nominate KILO, share protected information, or authorize implementation.</p></div>
+    <div className="engagement-ask"><div><span>Immediate request</span><h3>A 20–25-minute conversation with Donavan—or a referral to the appropriate reviewer.</h3></div><p>Pressure-test whether durable authority is a real operational seam around Purple Maiʻa’s publicly described Sovereign Stack. The goal is a fit signal and the right review path; implementation, protected information, and any real use remain outside this conversation.</p></div>
 
     <div className="phase-register">{phases.map((phase, index) => <article key={phase.phase}><div className="phase-number"><span>{String(index).padStart(2, "0")}</span><b>{phase.timing}</b></div><div className="phase-summary"><h3>{phase.phase}</h3><p>{phase.purpose}</p></div><div className="phase-work"><b>Work inside this phase</b><ul>{phase.work.map(item => <li key={item}>{item}</li>)}</ul></div><div className="phase-result"><b>Decision-quality output</b><p>{phase.result}</p></div></article>)}</div>
 
     <div className="responsibility-matrix">
       <article><span>Purple Maiʻa and designated authorities</span><h3>Define, correct, decide, restrict, refuse.</h3><ul><li>Name the organizational question and legitimate participants</li><li>Determine standing, terminology, knowledge boundaries, access, and publication</li><li>Validate, reject, condition, withdraw, or stop the work</li></ul></article>
-      <article><span>RN</span><h3>Listen, translate, map, prototype, test, document, transfer.</h3><ul><li>Turn approved requirements into inspectable workflows and artifacts</li><li>Preserve evidence status, uncertainty, dissent, and implementation detail</li><li>Avoid supplying cultural authority, legal conclusions, or consent</li></ul></article>
+      <article><span>RN</span><h3>Listen, translate, map, prototype, test, document, transfer.</h3><ul><li>Turn approved requirements into inspectable workflows and artifacts</li><li>Preserve evidence status, uncertainty, dissent, and implementation detail</li><li>Work within authority, legal, and cultural determinations supplied through the approved process</li></ul></article>
       <article><span>Technical and program participants</span><h3>Explain, test, operate, challenge, maintain.</h3><ul><li>Describe real architecture, dependencies, work practices, and burdens</li><li>Test whether proposed controls work under change and conflict</li><li>Accept only responsibilities that are expressly assigned</li></ul></article>
     </div>
 

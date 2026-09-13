@@ -1,5 +1,5 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": "nextjs",
-  "buildCommand": "npm run lint && npx next build"
+  "buildCommand": "npm run check:static && npm run build"
 }
