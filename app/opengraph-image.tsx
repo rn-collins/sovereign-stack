@@ -1,7 +1,7 @@
 import { ImageResponse } from "next/og";
 
 export const alt =
-  "Authority Layer — carrying authority through the Sovereign Stack";
+  "Authority Layer — an independent governance prototype";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
@@ -89,8 +89,8 @@ export default function OpenGraphImage() {
                 color: "#4d625a",
               }}
             >
-              Carry authority through purpose, standing, permissions, review,
-              withdrawal, repair—and exit.
+              How might authority decisions remain attached to a use as the
+              technical system changes?
             </div>
           </div>
 
@@ -104,7 +104,7 @@ export default function OpenGraphImage() {
               color: "#6d7873",
             }}
           >
-            <div style={{ display: "flex" }}>For Purple Maiʻa&apos;s Sovereign Stack</div>
+            <div style={{ display: "flex", maxWidth: 760 }}>Exploring authority alongside Purple Maiʻa&apos;s publicly described Sovereign Stack</div>
             <div style={{ display: "flex", color: "#8a3f2a" }}>
               Built by RN Collins
             </div>
