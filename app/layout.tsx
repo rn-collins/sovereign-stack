@@ -1,27 +1,17 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://sovereign-stack-psi.vercel.app"),
   alternates: { canonical: "/" },
-  title: "Authority Layer | Governance for Purple Maiʻa's Sovereign Stack",
+  title: "Authority Layer | Independent Governance Prototype",
   description:
-    "An independent governance prototype testing how authority, boundaries, review, withdrawal, repair, and exit could travel through Purple Maiʻa's Sovereign Stack.",
+    "An independent prototype exploring how authority decisions could remain attached to uses across Purple Maiʻa's publicly described Sovereign Stack.",
   openGraph: {
     title: "Authority Layer",
     description:
-      "An independent governance prototype for Purple Maiʻa's Sovereign Stack.",
+      "An independent prototype exploring authority alongside Purple Maiʻa's publicly described Sovereign Stack.",
     url: "https://sovereign-stack-psi.vercel.app",
     siteName: "Authority Layer",
     type: "website",
@@ -30,7 +20,7 @@ export const metadata: Metadata = {
         url: "/opengraph-image",
         width: 1200,
         height: 630,
-        alt: "Authority Layer — carrying authority through the Sovereign Stack",
+        alt: "Authority Layer — an independent governance prototype",
       },
     ],
   },
@@ -38,7 +28,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Authority Layer",
     description:
-      "An independent governance prototype for Purple Maiʻa's Sovereign Stack.",
+      "An independent prototype exploring authority alongside Purple Maiʻa's publicly described Sovereign Stack.",
     images: ["/opengraph-image"],
   },
   authors: [{ name: "Rayven-Nikkita (RN) Collins" }],
@@ -52,11 +42,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
-        {children}
-      </body>
+      <body>{children}</body>
     </html>
   );
 }
