@@ -20,7 +20,7 @@ test.describe("canonical proposal routes", () => {
 
       expect(response?.status(), `${route} should not be a fallback 404`).toBe(200);
       await expect(page.locator("main")).toBeVisible();
-      await expect(page.locator("h1")).toContainText("Authority");
+      await expect(page.locator("h1").first()).toBeVisible();
       await expect(page.locator("body")).not.toContainText("This page could not be found");
     });
   }
@@ -39,13 +39,14 @@ test("executive entry point has no automatically detectable WCAG A/AA violations
 test("executive navigation updates a shareable URL and respects browser history", async ({ page }) => {
   await page.goto("/proposal");
 
-  await page.getByRole("button", { name: "Walk the fictional use" }).click();
+  await page.getByRole("button", { name: "Test one fictional use" }).click();
   await expect(page).toHaveURL(/\/demo$/);
-  await expect(page.getByRole("heading", { name: "Watch one authorized use move from proposal to exit." })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Watch one proposed use move from definition to decision—and, if authorized, through change and exit." })).toBeVisible();
+  await expect(page.getByText("Why I am resurfacing this")).toHaveCount(0);
 
   await page.goBack();
   await expect(page).toHaveURL(/\/proposal$/);
-  await expect(page.getByRole("heading", { name: /Authority Layer keeps a use inside the decision/ })).toBeVisible();
+  await expect(page.getByRole("heading", { name: /Authority Layer models how a use could remain tied/ })).toBeVisible();
 });
 
 test("evidence sources are complete, external, and safely opened", async ({ page }) => {

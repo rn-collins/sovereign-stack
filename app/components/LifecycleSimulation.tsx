@@ -16,22 +16,22 @@ const stages = [
   {
     name: "Locate standing",
     question: "Which roles or bodies may convene, advise, decide, challenge, or stop this use?",
-    record: "An organizational sponsor may convene discovery. Technical staff may describe the system. The relevant authority reviewer remains unidentified in this fictional example.",
-    boundary: "A valid process must identify standing; employment, expertise, participation, ownership, and account access cannot supply it by inference.",
+    record: "An organizational sponsor may convene discovery. Technical staff may describe the system. The person or body recognized to make the required decision remains unidentified in this fictional example.",
+    boundary: "The decision process recognized for this use must identify standing; employment, expertise, participation, ownership, and account access do not establish it on their own.",
     status: "Authority unresolved",
   },
   {
     name: "Set boundaries",
     question: "What may enter the use, and what must remain restricted, local, ephemeral, or undigitized?",
-    record: "Permitted: specifically approved public webpages. Excluded: student, family, employee, or participant information; sensor data; unpublished material; protected knowledge; automated publication; profiling; training; and secondary reuse.",
-    boundary: "The classification remains a proposal until the appropriate authority validates it.",
+    record: "Permitted: specifically approved public webpages. Excluded: student, family, employee, or participant information; sensor data; unpublished material; knowledge designated as restricted or non-recordable; automated publication; profiling; training; and secondary reuse.",
+    boundary: "The classification remains a proposal until the person or body recognized for that decision confirms or revises it.",
     status: "Draft boundary",
   },
   {
     name: "Record a decision",
     question: "What was decided, by whom, for which version, and under what conditions?",
     record: "Illustrative result: eligible for a time-limited, non-sensitive technical prototype after standing is confirmed. No protected information, autonomous decisions, publication, or reuse.",
-    boundary: "The simulation shows the required decision shape. Approval requires a valid process and a verified decision-maker acting within documented authority.",
+    boundary: "The simulation shows the proposed decision structure. Approval requires a recognized decision process and a verified decision-maker acting within documented authority.",
     status: "Demonstration only",
   },
   {
@@ -45,7 +45,7 @@ const stages = [
     name: "Detect change",
     question: "Did the purpose, people, knowledge, data flow, model, vendor, or deployment change materially?",
     record: "Choose a change event below. The prototype compares the event with the scope and conditions of the illustrative decision.",
-    boundary: "Production change detection depends on an authority-approved definition of materiality and reliable technical evidence.",
+    boundary: "Production change detection depends on material-change criteria established through the applicable decision process and reliable technical evidence.",
     status: "Awaiting event",
   },
   {
@@ -65,7 +65,7 @@ const stages = [
 ] as const;
 
 const roles: Record<SimulationRole, { may: string; mayNot: string }> = {
-  Proposer: { may: "Describe the proposed use, purpose, expected benefit, alternatives, and available evidence.", mayNot: "Authorize the use, nominate community authority, or classify knowledge unilaterally." },
+  Proposer: { may: "Describe the proposed use, purpose, expected benefit, alternatives, and available evidence.", mayNot: "Authorize the use, designate who speaks for a community, or classify knowledge unilaterally." },
   "Technical contributor": { may: "Document models, data flows, vendors, versions, dependencies, controls, and material changes.", mayNot: "Treat technical ownership, system access, or implementation responsibility as decision-making authority." },
   Steward: { may: "Convene the approved process, maintain records, schedule review, and route questions to the right roles or bodies.", mayNot: "Expand purpose, erase dissent, substitute completion for consent, or approve beyond delegated scope." },
   "Authority reviewer": { may: "Approve, condition, defer, refuse, withdraw, or require review within documented standing and scope.", mayNot: "Speak for another authority, another project, another community, or an unexamined future use." },
@@ -86,17 +86,19 @@ function downloadScenario(stageIndex: number, role: SimulationRole, eventId: Lif
   const selectedEvent = events.find(event => event.id === eventId);
   const payload = {
     artifactType: "authority-layer-lifecycle-simulation",
-    schemaVersion: "1.0",
-    prototypeVersion: "1.2.1",
+    artifactSchemaVersion: "1.0",
+    prototypeVersion: "1.3.0",
     generatedAt: new Date().toISOString(),
-    status: "FICTIONAL, NON-AUTHORIZING DEMONSTRATION",
+    status: "Fictional lifecycle demonstration · non-authorizing",
+    authorship: "Independent interactive proposal and product specification by Rayven-Nikkita (RN) Collins",
+    relationshipBoundary: "I previously corresponded with Purple Maiʻa about the earlier proposal. Purple Maiʻa has not commissioned or endorsed this work.",
     scenario: "Public information drafting assistant",
     currentStage: stages[stageIndex].name,
     rolePreview: role,
     roleBoundary: roles[role],
     lifecycle: stages,
     selectedChangeEvent: selectedEvent || "No event selected",
-    nonAuthorization: "Fictional interaction-simulation output; not a Purple Maiʻa record, decision, policy, system description, or authorization. Identity and authority are not verified. Use only with fictional, non-sensitive information.",
+    nonAuthorization: "Fictional demonstration output; not a Purple Maiʻa record, decision, policy, system description, or authorization. Identity and authority are not verified. Use only with fictional, non-sensitive information.",
     canonicalUrl: "https://sovereign-stack-psi.vercel.app/",
   };
   const url = URL.createObjectURL(new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" }));
@@ -116,14 +118,14 @@ export default function LifecycleSimulation() {
 
   return <section className="simulation" aria-labelledby="simulation-title">
     <div className="section-intro compact">
-      <p className="overline">Guided lifecycle simulation · fictional and non-sensitive</p>
-      <h2 id="simulation-title">Watch one authorized use move from proposal to exit.</h2>
-      <p>This high-fidelity interaction simulation shows the intended lifecycle and doubles as an inspectable product requirement. It is not yet a connected authority system. Each stage shows the record to preserve, the open decision, and the boundary between interface behavior and human authority.</p>
+      <p className="overline">Interactive demonstration · fictional and non-sensitive</p>
+      <h2 id="simulation-title">Watch one proposed use move from definition to decision—and, if authorized, through change and exit.</h2>
+      <p>This demonstration makes the proposed lifecycle and product requirements inspectable. It is not a connected authority system. Each stage shows what a future product would preserve, which decision remains open, and where interface behavior must stop short of human authority.</p>
     </div>
 
     <div className="scenario-banner">
       <div><span>Fictional scenario</span><h3>Public information drafting assistant</h3><p>A staff-facing local tool drafts short responses from an enumerated set of already-published public webpages, with human review before every use. Its proposed scope excludes decision-making, protected material, ranking people, and automatic publication.</p></div>
-      <div><span>Why this scenario</span><p>It is intentionally ordinary: concrete enough to test the authority mechanism without using KILO, environmental observations, student information, community knowledge, or any real Purple Maiʻa implementation.</p></div>
+      <div><span>Why this scenario</span><p>It is intentionally ordinary: concrete enough to test the proposed mechanism without using KILO, environmental observations, student information, community knowledge, or any real organizational implementation.</p></div>
     </div>
 
     <div className="simulation-progress" aria-label={`Lifecycle stage ${stageIndex + 1} of ${stages.length}`}>
@@ -145,7 +147,7 @@ export default function LifecycleSimulation() {
     </div>
 
     {stageIndex >= 5 && <div className="event-lab">
-      <div className="event-head"><div><p className="overline">Change-event laboratory</p><h3>Change the implementation. See what happens to the decision.</h3></div><p>A production product would compare reliable system evidence with authority-approved material-change rules. This demonstration uses six predefined examples.</p></div>
+      <div className="event-head"><div><p className="overline">Change-event laboratory</p><h3>Change the implementation. See what happens to the decision.</h3></div><p>A connected product would compare reliable system evidence with material-change criteria established through the applicable decision process. This demonstration uses six predefined examples.</p></div>
       <fieldset className="event-options"><legend className="sr-only">Choose a lifecycle change event</legend>
         {events.map(event => <label key={event.id} className={eventId === event.id ? "selected" : ""}><input type="radio" name="lifecycle-event" checked={eventId === event.id} onChange={() => setEventId(event.id)} /><span aria-hidden="true">{eventId === event.id ? "●" : "○"}</span>{event.label}</label>)}
       </fieldset>
@@ -162,7 +164,7 @@ export default function LifecycleSimulation() {
     <div className="simulation-controls">
       <button disabled={stageIndex === 0} onClick={() => setStageIndex(index => Math.max(0, index - 1))}>← Previous stage</button>
       <button onClick={() => { setStageIndex(0); setRole("Proposer"); setEventId(""); }}>Reset simulation</button>
-      {stageIndex < stages.length - 1 ? <button className="primary" onClick={() => setStageIndex(index => Math.min(stages.length - 1, index + 1))}>Next stage <span>→</span></button> : <button className="primary" onClick={() => downloadScenario(stageIndex, role, eventId)}>Download fictional record <span>↓</span></button>}
+      {stageIndex < stages.length - 1 ? <button className="primary" onClick={() => setStageIndex(index => Math.min(stages.length - 1, index + 1))}>Next stage <span>→</span></button> : <button className="primary" onClick={() => downloadScenario(stageIndex, role, eventId)}>Download simulation snapshot <span>↓</span></button>}
     </div>
   </section>;
 }

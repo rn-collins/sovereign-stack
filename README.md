@@ -1,6 +1,6 @@
 # Authority Layer
 
-An independent working proposal by RN Collins for pressure-testing whether a specific use can remain bound to the authority decision that governs it as technology, people, purpose, and operating conditions change.
+An independent interactive proposal by RN Collins exploring how a specific use could remain tied to the decision that governs it as technology, people, purpose, and operating conditions change.
 
 **Live:** https://sovereign-stack-psi.vercel.app
 
@@ -12,7 +12,7 @@ Every factual assertion about Purple Maiʻa is separated in the Assumption Ledge
 
 ## What the prototype demonstrates
 
-Version 1.2.1 presents the work precisely as an executive proposal, an inspectable product-requirements model, and a high-fidelity interaction simulation. It adds bookmarkable proposal, demonstration, system, engagement, evidence, and tool routes; a 60–90 second executive path; a direct copy-and-reply response path; evidence access dates; tighter affirmative copy; a Content Security Policy; and automated route, accessibility, evidence-link, and Decision Gate checks.
+Version 1.3.0 presents the work as an executive proposal, an inspectable product specification, and an interactive fictional lifecycle demonstration. It clarifies that the interface documents rather than creates authority; makes deep links direct; simplifies the executive ask; standardizes terminology; and aligns governance, privacy, evidence, forms, and exports with the product’s actual capabilities.
 
 The site illustrates a connected authority system; it does not yet implement one. The current Decision Gate, Authority Record, lifecycle simulation, production-readiness workspace, co-design agenda, pilot charter, learning translation, and Assumption Ledger remain browser-local tools rather than a shared, identity-verified authority graph.
 

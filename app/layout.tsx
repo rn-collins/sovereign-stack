@@ -5,13 +5,13 @@ import "./globals.css";
 export const metadata: Metadata = {
   metadataBase: new URL("https://sovereign-stack-psi.vercel.app"),
   alternates: { canonical: "/" },
-  title: "Authority Layer | Independent Governance Prototype",
+  title: "Authority Layer | Interactive Governance Proposal",
   description:
-    "A working proposal showing how one specific use could remain bound to its authority decision as technology, people, purpose, and conditions change.",
+    "An interactive proposal exploring how a permitted use could remain tied to its governing decision as technology, people, purpose, and conditions change.",
   openGraph: {
     title: "Authority Layer",
     description:
-      "A working proposal for binding one specific use to its authority decision across change, challenge, withdrawal, and exit.",
+      "An interactive proposal exploring how one permitted use could remain tied to its governing decision across change, challenge, withdrawal, and exit.",
     url: "https://sovereign-stack-psi.vercel.app",
     siteName: "Authority Layer",
     type: "website",
@@ -20,7 +20,7 @@ export const metadata: Metadata = {
         url: "/opengraph-image",
         width: 1200,
         height: 630,
-        alt: "Authority Layer — an independent governance prototype",
+        alt: "Authority Layer — an independent interactive proposal",
       },
     ],
   },
@@ -28,7 +28,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Authority Layer",
     description:
-      "A working proposal for binding one specific use to its authority decision across change, challenge, withdrawal, and exit.",
+      "An interactive proposal exploring how one permitted use could remain tied to its governing decision across change, challenge, withdrawal, and exit.",
     images: ["/opengraph-image"],
   },
   authors: [{ name: "Rayven-Nikkita (RN) Collins" }],
