@@ -5,6 +5,7 @@ import Definitions from "./components/Definitions";
 import EngagementProposal from "./components/EngagementProposal";
 import LifecycleSimulation from "./components/LifecycleSimulation";
 import ProductAnatomy from "./components/ProductAnatomy";
+import { reengagementLetter } from "./content/reengagement";
 import { type View, VIEW_PATHS, viewFromPathname } from "./route-config";
 
 type EvidenceType = "All" | "Public record" | "RN synthesis" | "Hypothesis" | "Proposed design" | "Unresolved";
@@ -189,7 +190,7 @@ function artifactEnvelope(artifactType: string, status: string) {
   return {
     artifactType,
     artifactSchemaVersion: "1.0",
-    prototypeVersion: "1.3.0",
+    prototypeVersion: "1.3.1",
     generatedAt: new Date().toISOString(),
     canonicalUrl: "https://sovereign-stack-psi.vercel.app/",
     status,
@@ -232,6 +233,7 @@ export function AuthorityLayerApp({ initialView = "review" }: { initialView?: Vi
   const [privacyOpen, setPrivacyOpen] = useState(false);
   const [eraseConfirmed, setEraseConfirmed] = useState(false);
   const [responseCopied, setResponseCopied] = useState(false);
+  const [letterCopied, setLetterCopied] = useState(false);
   const resultRef = useRef<HTMLDivElement>(null);
   const privacyRef = useRef<HTMLElement>(null);
   const privacyOpenerRef = useRef<HTMLElement | null>(null);
@@ -367,13 +369,25 @@ export function AuthorityLayerApp({ initialView = "review" }: { initialView?: Vi
       setResponseCopied(false);
     }
   }
+  async function copyReengagementLetter() {
+    try {
+      await navigator.clipboard.writeText(reengagementLetter);
+      setLetterCopied(true);
+      window.setTimeout(() => setLetterCopied(false), 3000);
+    } catch {
+      setLetterCopied(false);
+    }
+  }
+  function downloadReengagementLetter() {
+    downloadText("authority-layer-reengagement-letter.md", reengagementLetter);
+  }
   function clearGate() { setAnswers([]); setNotes([]); setStep(0); setGateProjectName(""); setProjectPurpose(""); }
   function downloadText(filename: string, content: string) {
     const url = URL.createObjectURL(new Blob([content], { type: "text/markdown;charset=utf-8" }));
     const link = document.createElement("a"); link.href = url; link.download = filename; link.click(); URL.revokeObjectURL(url);
   }
   function exportMeetingBrief() {
-    downloadText("authority-layer-executive-brief.md", `# Authority Layer\n\n**Independent interactive proposal by Rayven-Nikkita (RN) Collins**  \n**Version 1.3.0 · 14 September 2026**\n\nPurple Maiʻa has publicly described a technical Sovereign Stack in terms of local compute, open models, AI coding agents, edge systems, and sovereignty-first technology development.\n\nI built Authority Layer to test a narrower question:\n\n**When a permitted use changes—its purpose, data, model, vendor, audience, or operators—how should its governing decision change with it?**\n\nThis site includes:\n\n- an interactive fictional lifecycle demonstration;\n- a pre-build Decision Gate;\n- a versioned Authority Record;\n- product requirements for implementation binding and material-change review;\n- versioned permissions, conditions, dissent, and review;\n- challenge, incident, withdrawal, migration, and retirement paths; and\n- a staged engagement process that can stop before implementation.\n\nThis proposal does not claim that Purple Maiʻa lacks governance practices or attempt to define Hawaiian values, community authority, or kānāwai. Public information cannot establish whether the proposed layer is useful, redundant, or misframed.\n\n## Immediate request\n\nI am asking for one 20-minute conversation to determine whether this addresses an actual problem, duplicates work already in place, or needs to be reframed. Any of those answers would be useful.\n\nOnly if Purple Maiʻa identifies a genuine gap would I propose a separately scoped, compensated discovery engagement using one fictional or approved non-sensitive scenario.\n\n## Boundaries\n\n- Purple Maiʻa and the people or bodies it identifies as holding authority for the matter define substance and decision-making roles.\n- Knowledge designated as restricted or non-recordable does not belong in this public browser demonstration.\n- Public excerpts require separate review and approval.\n- Interest, attendance, form completion, or download does not create authority or consent.\n- Revision, referral, redundancy, deferral, and stopping are useful findings.\n\n## Primary public sources\n\n- ʻĀina Foundry, “The Sovereign Stack” event description: https://luma.com/88dnl4w1\n- Purple Maiʻa, ʻĀina Foundry: https://www.purplemaia.org/ainafoundry\n- ʻĀina Foundry prototype log: https://blog.labs.purplemaia.org/\n\n**Prepared by Rayven-Nikkita (RN) Collins**  \nGovernance systems and law-and-technology implementation research  \nhttps://sovereign-stack-psi.vercel.app/\n\nI previously corresponded with Purple Maiʻa about the earlier proposal. Purple Maiʻa has not commissioned or endorsed this work.\n`);
+    downloadText("authority-layer-executive-brief.md", `# Authority Layer\n\n**Independent interactive proposal by Rayven-Nikkita (RN) Collins**  \n**Version 1.3.1 · 14 September 2026**\n\nPurple Maiʻa has publicly described a technical Sovereign Stack in terms of local compute, open models, AI coding agents, edge systems, and sovereignty-first technology development.\n\nI built Authority Layer to test a narrower question:\n\n**When a permitted use changes—its purpose, data, model, vendor, audience, or operators—how should its governing decision change with it?**\n\nThis site includes:\n\n- an interactive fictional lifecycle demonstration;\n- a pre-build Decision Gate;\n- a versioned Authority Record;\n- product requirements for implementation binding and material-change review;\n- versioned permissions, conditions, dissent, and review;\n- challenge, incident, withdrawal, migration, and retirement paths; and\n- a staged engagement process that can stop before implementation.\n\nThis proposal does not claim that Purple Maiʻa lacks governance practices or attempt to define Hawaiian values, community authority, or kānāwai. Public information cannot establish whether the proposed layer is useful, redundant, or misframed.\n\n## Immediate request\n\nI am asking for one 20-minute conversation to determine whether this addresses an actual problem, duplicates work already in place, or needs to be reframed. Any of those answers would be useful.\n\nOnly if Purple Maiʻa identifies a genuine gap would I propose a separately scoped, compensated discovery engagement using one fictional or approved non-sensitive scenario.\n\n## Boundaries\n\n- Purple Maiʻa and the people or bodies it identifies as holding authority for the matter define substance and decision-making roles.\n- Knowledge designated as restricted or non-recordable does not belong in this public browser demonstration.\n- Public excerpts require separate review and approval.\n- Interest, attendance, form completion, or download does not create authority or consent.\n- Revision, referral, redundancy, deferral, and stopping are useful findings.\n\n## Primary public sources\n\n- ʻĀina Foundry, “The Sovereign Stack” event description: https://luma.com/88dnl4w1\n- Purple Maiʻa, ʻĀina Foundry: https://www.purplemaia.org/ainafoundry\n- ʻĀina Foundry prototype log: https://blog.labs.purplemaia.org/\n\n**Prepared by Rayven-Nikkita (RN) Collins**  \nGovernance systems and law-and-technology implementation research  \nhttps://sovereign-stack-psi.vercel.app/\n\nI previously corresponded with Purple Maiʻa about the earlier proposal. Purple Maiʻa has not commissioned or endorsed this work.\n`);
   }
   function eraseAllDrafts() {
     skipNextSaveRef.current = true;
@@ -524,7 +538,7 @@ export function AuthorityLayerApp({ initialView = "review" }: { initialView?: Vi
 
   return <main>
     <a className="skip-link" href="#section-navigation">Skip to section navigation</a>
-    <div className="print-meta"><b>Authority Layer · Independent interactive proposal by Rayven-Nikkita (RN) Collins</b><span>Version 1.3.0 · https://sovereign-stack-psi.vercel.app/</span><span>Not commissioned or endorsed by Purple Maiʻa. Printed material is for review and does not create authority or authorization.</span></div>
+    <div className="print-meta"><b>Authority Layer · Independent interactive proposal by Rayven-Nikkita (RN) Collins</b><span>Version 1.3.1 · https://sovereign-stack-psi.vercel.app/</span><span>Not commissioned or endorsed by Purple Maiʻa. Printed material is for review and does not create authority or authorization.</span></div>
     <header className="topbar">
       <button className="wordmark" onClick={returnToBeginning} aria-label="Return to beginning"><span className="knot" aria-hidden="true">◈</span><span>Authority Layer</span></button>
       <button className="ownership status-control" onClick={openPrivacy} aria-expanded={privacyOpen}><span />Independent proposal · status &amp; privacy</button>
@@ -534,7 +548,7 @@ export function AuthorityLayerApp({ initialView = "review" }: { initialView?: Vi
       <button autoFocus className="privacy-close" onClick={closePrivacy} aria-label="Close status and privacy panel">×</button>
       <p className="overline">Status, privacy &amp; local drafts</p><h2 id="privacy-title">What this site stores, transmits, and cannot safely hold.</h2>
       <div className="privacy-grid"><article><b>Authorship and status</b><p>Independent proposal by Rayven-Nikkita Collins, developed from the public sources listed in the Assumption Ledger. I previously corresponded with Purple Maiʻa about the earlier proposal. Purple Maiʻa has not commissioned or endorsed this work. It is not Purple Maiʻa policy or a community-authorized framework.</p></article><article><b>What this browser stores</b><p>Drafts created in the Authority Record, production-planning workspace, co-design brief, and pilot charter may remain in this browser&apos;s local storage until erased or browser storage is cleared.</p></article><article><b>What is transmitted</b><p>This site has no user account, application database, submission endpoint, or configured analytics. The hosting provider processes ordinary request metadata, but text entered into these workspaces is not sent to me or an application database.</p></article><article><b>What this site cannot safely hold</b><p>Do not enter protected cultural knowledge, personal data, credentials, confidential organizational information, or real authority decisions. Role and classification controls are illustrative; they do not provide secure access control.</p></article></div>
-      <div className="privacy-actions"><div><b>Version 1.3.0 · revised 14 September 2026</b><span>Public demonstration · browser-local drafting only</span></div><button onClick={eraseAllDrafts}>Erase all browser drafts</button></div>
+      <div className="privacy-actions"><div><b>Version 1.3.1 · revised 14 September 2026</b><span>Public demonstration · browser-local drafting only</span></div><button onClick={eraseAllDrafts}>Erase all browser drafts</button></div>
       {eraseConfirmed&&<p className="erase-confirm" role="status">All Authority Layer drafts stored by this site in this browser have been erased.</p>}
     </aside>}
 
@@ -628,7 +642,7 @@ export function AuthorityLayerApp({ initialView = "review" }: { initialView?: Vi
     </section>}
 
     {view === "pilot" && <section id="pilot-content" className="content pilot" tabIndex={-1}>
-      <EngagementProposal />
+      <EngagementProposal onDownloadLetter={downloadReengagementLetter} onCopyLetter={copyReengagementLetter} letterCopied={letterCopied} />
       <div className="proposal-actions"><button className="primary" onClick={() => selectView("review")}>Review the immediate request <span>→</span></button><button onClick={() => selectView("session")}>Inspect the 90-minute session</button><button onClick={() => selectView("charter")}>Inspect the pilot charter</button></div>
     </section>}
 
@@ -727,7 +741,7 @@ export function AuthorityLayerApp({ initialView = "review" }: { initialView?: Vi
       <div className="decision-box"><div><p className="overline">What this room asks</p><h3>Not “Did RN research enough?” but “Is the proposition accurately bounded enough to begin listening?”</h3></div><p>A successful review may produce a correction, a referral to someone with standing, a narrower question, a discovery invitation, or a decision to stop. Each is a useful result.</p></div>
     </section>}
 
-    <footer><div><span className="knot">◈</span><b>Authority Layer</b><small>Version 1.3 · revised 14 September 2026</small></div><p>Independent proposal by Rayven-Nikkita Collins. Not commissioned or endorsed by Purple Maiʻa. <button onClick={openPrivacy}>View status, evidence handling, privacy &amp; erase drafts</button></p></footer>
+    <footer><div><span className="knot">◈</span><b>Authority Layer</b><small>Version 1.3.1 · revised 14 September 2026</small></div><p>Independent proposal by Rayven-Nikkita Collins. Not commissioned or endorsed by Purple Maiʻa. <button onClick={openPrivacy}>View status, evidence handling, privacy &amp; erase drafts</button></p></footer>
   </main>;
 }
 

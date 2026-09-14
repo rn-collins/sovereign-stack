@@ -1,3 +1,5 @@
+import { substantiveRevisions } from "../content/reengagement";
+
 const phases = [
   {
     phase: "Initial review",
@@ -29,7 +31,7 @@ const phases = [
   },
 ] as const;
 
-export default function EngagementProposal() {
+export default function EngagementProposal({ onDownloadLetter, onCopyLetter, letterCopied }: { onDownloadLetter: () => void; onCopyLetter: () => void; letterCopied: boolean }) {
   return <section className="engagement-proposal" aria-labelledby="engagement-title">
     <div className="section-intro compact">
       <p className="overline">Engagement proposal · decisions before scope expansion</p>
@@ -38,6 +40,19 @@ export default function EngagementProposal() {
     </div>
 
     <div className="engagement-ask"><div><span>Immediate request</span><h3>A 20-minute conversation with the person best placed to assess the premise.</h3></div><p>The purpose is to determine whether durable authority presents an actual problem around the publicly described Sovereign Stack, whether existing work already addresses it, or whether the proposal needs to be reframed. Implementation, protected information, and any real use remain outside this conversation.</p></div>
+
+    <section className="revision-record" aria-labelledby="revision-record-title">
+      <div className="revision-record-head">
+        <div><p className="overline">Substantive revision record</p><h3 id="revision-record-title">What changed—and why this is not merely a redesigned resend.</h3></div>
+        <p>The re-engagement letter identifies each material change directly so the recipient can assess the revised premise without comparing two versions line by line.</p>
+      </div>
+      <div className="revision-register">{substantiveRevisions.map((revision, index) => <article key={revision.title}><span>{String(index + 1).padStart(2, "0")}</span><div><h4>{revision.title}</h4><p>{revision.detail}</p></div></article>)}</div>
+      <div className="letter-actions">
+        <div><b>Re-engagement letter</b><span>This correspondence explains the revision. It is not a legal engagement agreement or authorization to begin services.</span></div>
+        <div><button onClick={onCopyLetter}>{letterCopied ? "Letter copied" : "Copy letter"}</button><button className="primary" onClick={onDownloadLetter}>Download letter <span>↓</span></button></div>
+        <span role="status" className="sr-only">{letterCopied ? "Re-engagement letter copied to clipboard." : ""}</span>
+      </div>
+    </section>
 
     <div className="phase-register">{phases.map((phase, index) => <article key={phase.phase}><div className="phase-number"><span>{String(index).padStart(2, "0")}</span><b>{phase.timing}</b></div><div className="phase-summary"><h3>{phase.phase}</h3><p>{phase.purpose}</p></div><div className="phase-work"><b>Work inside this phase</b><ul>{phase.work.map(item => <li key={item}>{item}</li>)}</ul></div><div className="phase-result"><b>Decision-quality output</b><p>{phase.result}</p></div></article>)}</div>
 

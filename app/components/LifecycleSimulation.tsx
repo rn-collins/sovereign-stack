@@ -87,7 +87,7 @@ function downloadScenario(stageIndex: number, role: SimulationRole, eventId: Lif
   const payload = {
     artifactType: "authority-layer-lifecycle-simulation",
     artifactSchemaVersion: "1.0",
-    prototypeVersion: "1.3.0",
+    prototypeVersion: "1.3.1",
     generatedAt: new Date().toISOString(),
     status: "Fictional lifecycle demonstration · non-authorizing",
     authorship: "Independent interactive proposal and product specification by Rayven-Nikkita (RN) Collins",

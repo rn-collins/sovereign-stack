@@ -12,7 +12,7 @@ Every factual assertion about Purple Maiʻa is separated in the Assumption Ledge
 
 ## What the prototype demonstrates
 
-Version 1.3.0 presents the work as an executive proposal, an inspectable product specification, and an interactive fictional lifecycle demonstration. It clarifies that the interface documents rather than creates authority; makes deep links direct; simplifies the executive ask; standardizes terminology; and aligns governance, privacy, evidence, forms, and exports with the product’s actual capabilities.
+Version 1.3.1 presents the work as an executive proposal, an inspectable product specification, and an interactive fictional lifecycle demonstration. It clarifies that the interface documents rather than creates authority; makes deep links direct; simplifies the executive ask; standardizes terminology; aligns governance, privacy, evidence, forms, and exports with the product’s actual capabilities; and adds a substantive revision record with a ready-to-send re-engagement letter.
 
 The site illustrates a connected authority system; it does not yet implement one. The current Decision Gate, Authority Record, lifecycle simulation, production-readiness workspace, co-design agenda, pilot charter, learning translation, and Assumption Ledger remain browser-local tools rather than a shared, identity-verified authority graph.
 

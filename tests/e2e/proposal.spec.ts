@@ -49,6 +49,29 @@ test("executive navigation updates a shareable URL and respects browser history"
   await expect(page.getByRole("heading", { name: /Authority Layer models how a use could remain tied/ })).toBeVisible();
 });
 
+test("engagement route identifies and exports every substantive revision", async ({ page }) => {
+  await page.goto("/engagement");
+
+  await expect(page.getByRole("heading", { name: "What changed—and why this is not merely a redesigned resend." })).toBeVisible();
+  await expect(page.locator(".revision-register article")).toHaveCount(7);
+  await expect(page.getByText("It is not a legal engagement agreement or authorization to begin services.")).toBeVisible();
+
+  const downloadPromise = page.waitForEvent("download");
+  await page.getByRole("button", { name: "Download letter" }).click();
+  const download = await downloadPromise;
+  expect(download.suggestedFilename()).toBe("authority-layer-reengagement-letter.md");
+
+  const stream = await download.createReadStream();
+  const chunks: Buffer[] = [];
+  for await (const chunk of stream) chunks.push(Buffer.from(chunk));
+  const letter = Buffer.concat(chunks).toString("utf8");
+
+  expect(letter).toContain("The revision makes seven substantive changes:");
+  expect(letter).toContain("1. Repositioning.");
+  expect(letter).toContain("7. Status, privacy, and commercial terms.");
+  expect(letter).toContain("I am not asking Purple Maiʻa to approve the framework");
+});
+
 test("evidence sources are complete, external, and safely opened", async ({ page }) => {
   await page.goto("/evidence");
   const sourceLinks = page.locator('main a[target="_blank"]');
